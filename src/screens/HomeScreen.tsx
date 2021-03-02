@@ -6,5 +6,5 @@ export type Props = {
 };
 
 export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
-  return <h1>{JSON.stringify(lists)}</h1>;
+  return <h1>Well hello there</h1>;
 };
