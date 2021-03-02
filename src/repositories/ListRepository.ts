@@ -25,7 +25,7 @@ export function buildMemoryListRepository(): ListRepository {
         return null;
       }
 
-      const item: Item = { content };
+      const item: Item = { id: `${list.items.length + 1}`, content };
 
       list.items.push(item);
 
