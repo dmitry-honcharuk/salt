@@ -47,7 +47,9 @@ export default class MyDocument extends Document {
             href='https://fonts.googleapis.com/css2?family=Roboto&display=swap'
             rel='stylesheet'
           />
+          <link rel='apple-touch-icon' href='/icons/icon-192x192.png' />
           <link rel='manifest' href='/manifest.json' />
+          <meta name='theme-color' content='#abf1d1' />
           <title>Salt</title>
         </Head>
         <body>
