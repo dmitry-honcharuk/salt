@@ -10,6 +10,7 @@ export const theme: DefaultTheme = {
     text: '#3b3b3b',
     inputBorderIdle: '#e0e0e0',
     inputBorderFocused: Color(MAIN_COLOR).darken(0.2).string(),
+    inputOptionalLabel: '#4b4a4aeb',
   },
   spacing: { unit: 5 },
 };

@@ -1,8 +1,8 @@
+import { theme } from 'frontend/theme';
+import { color } from 'frontend/theme-selectors';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import { theme } from 'view/theme';
-import { color } from 'view/theme-selectors';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

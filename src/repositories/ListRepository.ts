@@ -6,11 +6,12 @@ export function buildMemoryListRepository(): ListRepository {
   const lists: List[] = [];
 
   return {
-    createList: async ({ name }) => {
+    createList: async ({ name, createdAt }) => {
       const list: List = {
         id: `${lists.length + 1}`,
         items: [],
         name,
+        createdAt,
       };
 
       lists.push(list);

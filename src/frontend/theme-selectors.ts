@@ -8,3 +8,9 @@ export const color = (key: keyof DefaultTheme['colors']) => ({
 
 export const space = (k: number = 1) => ({ theme }: Props) =>
   theme.spacing.unit * k;
+
+export const spaceSet = (...k: number[]) => (p: Props) =>
+  k
+    .map((k) => space(k)(p))
+    .map((space) => `${space}px`)
+    .join(' ');

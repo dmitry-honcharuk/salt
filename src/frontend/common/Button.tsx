@@ -1,5 +1,5 @@
+import { color, space } from 'frontend/theme-selectors';
 import styled from 'styled-components';
-import { color, space } from 'view/theme-selectors';
 
 export const Button = styled.button`
   background-color: transparent;

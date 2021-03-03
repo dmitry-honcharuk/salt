@@ -8,6 +8,7 @@ declare module 'styled-components' {
       text: string;
       inputBorderIdle: string;
       inputBorderFocused: string;
+      inputOptionalLabel: string;
     };
     spacing: {
       unit: number;
