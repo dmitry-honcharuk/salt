@@ -12,7 +12,7 @@ export function buildAddItem({ listRepo }: Deps) {
       throw new CoreError('Content is required');
     }
 
-    const item = await listRepo.addItem({ listId, content });
+    const item = await listRepo.addItem({ listId, content, done: false });
 
     if (!item) {
       throw new CoreError('Could not add item');

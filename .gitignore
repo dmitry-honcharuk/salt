@@ -35,3 +35,5 @@ yarn-error.log*
 
 /public/sw*
 /public/workbox*
+
+/.idea

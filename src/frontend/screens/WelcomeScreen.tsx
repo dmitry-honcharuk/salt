@@ -1,25 +1,27 @@
-import { NewListForm } from 'frontend/blocks/NewListForm';
+import { List } from 'core/entities/List';
+import { NewList } from 'frontend/blocks/NewList';
 import { Button } from 'frontend/common/Button';
 import { H5 } from 'frontend/common/Typography';
+import { post } from 'frontend/services/api';
 import { space } from 'frontend/theme-selectors';
-import { FunctionComponent, useState } from 'react';
+import { useRouter } from 'next/router';
+import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 
 export const WelcomeScreen: FunctionComponent = () => {
-  const [formVisible, setFormVisibility] = useState(false);
+  const { push } = useRouter();
+
+  const createList = async () => {
+    const list = await post<List>('/api/lists', {});
+
+    push(`/${list.id}`);
+  };
 
   return (
     <Root>
       <Content>
-        {!formVisible && (
-          <>
-            <Title>You don't seem to have any lists yet</Title>
-            <CreateButton onClick={() => setFormVisibility(true)}>
-              Create a list then!
-            </CreateButton>
-          </>
-        )}
-        {formVisible && <Form />}
+        <Title>You don't seem to have any lists yet</Title>
+        <CreateButton onClick={createList}>Create a list then!</CreateButton>
       </Content>
     </Root>
   );
@@ -54,4 +56,6 @@ const CreateButton = styled(Button)`
   border-style: dashed;
 `;
 
-const Form = styled(NewListForm)``;
+const Form = styled(NewList)`
+  width: 100%;
+`;

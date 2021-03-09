@@ -1,17 +1,6 @@
 import 'styled-components';
+import { Theme } from '../frontend/theme';
 
 declare module 'styled-components' {
-  export interface DefaultTheme {
-    colors: {
-      main: string;
-      secondary: string;
-      text: string;
-      inputBorderIdle: string;
-      inputBorderFocused: string;
-      inputOptionalLabel: string;
-    };
-    spacing: {
-      unit: number;
-    };
-  }
+  export interface DefaultTheme extends Theme {}
 }

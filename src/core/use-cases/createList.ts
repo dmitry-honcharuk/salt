@@ -3,7 +3,10 @@ import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
 export function buildCreateList({ listRepo }: Deps) {
   return async ({ name }: Input): Promise<List> => {
-    const list = await listRepo.createList({ name, createdAt: Date.now() });
+    const list = await listRepo.createList({
+      name: name ?? null,
+      createdAt: Date.now(),
+    });
 
     return list;
   };

@@ -15,7 +15,7 @@ export const Button = styled.button`
     outline: none;
   }
 
-  &:hover {
+  &:active {
     background-color: ${color('main')};
   }
 `;

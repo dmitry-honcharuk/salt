@@ -14,7 +14,7 @@ type FormState = {
   name?: string;
 };
 
-export const NewListForm: FunctionComponent<Props> = ({ className }) => {
+export const NewList: FunctionComponent<Props> = ({ className }) => {
   const { register, handleSubmit } = useForm<FormState>();
   const [createdList, setCreatedList] = useState<List>();
 
