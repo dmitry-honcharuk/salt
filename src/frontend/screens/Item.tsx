@@ -24,7 +24,7 @@ export const Item: FunctionComponent<Props> = ({
   const { current: handleChange } = useRef(
     debounce((event: ChangeEvent<HTMLInputElement>) => {
       onItemChange(event.target.value);
-    }, 300),
+    }, 500),
   );
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +71,7 @@ const Icon = styled.svg<{ done?: boolean }>`
 const Input = styled.input<{ done?: boolean }>`
   border: none;
   font-size: 20px;
+  flex-grow: 1;
 
   color: ${({ done, theme }) =>
     done ? lighterColor('text', 2)({ theme }) : color('text')({ theme })};
