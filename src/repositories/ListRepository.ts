@@ -58,22 +58,21 @@ export function buildMemoryListRepository(): ListRepository {
     getListById: async (listId) => {
       return lists.find(({ id }) => id === listId) ?? null;
     },
-    toggleItem: async (listId: string, itemId: string): Promise<boolean> => {
+    updateItem: async ({ listId, itemId }, updatedItem) => {
       const list = lists.find(({ id }) => id === listId);
 
-      if (!list) {
-        return false;
-      }
+      if (!list) return null;
 
-      const item = list.items.find(({ id }) => id === itemId);
+      const itemIndex = list.items.findIndex(({ id }) => id === itemId);
 
-      if (!item) {
-        return false;
-      }
+      if (itemIndex === -1) return null;
 
-      item.done = !item.done;
+      list.items[itemIndex] = {
+        id: list.items[itemIndex].id,
+        ...updatedItem,
+      };
 
-      return true;
+      return list.items[itemIndex];
     },
   };
 }

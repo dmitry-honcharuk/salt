@@ -3,7 +3,7 @@ import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
 export function buildGetListById({ listRepo }: Deps) {
-  return async ({ id }: Input): Promise<List | null> => {
+  return async ({ listId: id }: Input): Promise<List | null> => {
     if (!id) {
       throw new CoreError('Id is required');
     }
@@ -18,5 +18,5 @@ type Deps = {
   listRepo: ListRepository;
 };
 type Input = {
-  id?: string;
+  listId?: string;
 };

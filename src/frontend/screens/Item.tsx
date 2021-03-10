@@ -1,7 +1,7 @@
 import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
 import Color from 'color';
-import { color, spaceSet } from 'frontend/theme-selectors';
+import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
 import debounce from 'lodash/debounce';
 import { ChangeEvent, FunctionComponent, useEffect, useRef } from 'react';
 import styled from 'styled-components';
@@ -35,27 +35,28 @@ export const Item: FunctionComponent<Props> = ({
   }, [focused]);
 
   return (
-    <Root done={done}>
+    <Root>
       <Icon
         as={done ? CheckBoxIcon : CheckBoxOutlineBlankIcon}
         onClick={onToggle}
         done={done}
       />
 
-      <Input defaultValue={content} onChange={handleChange} ref={inputRef} />
+      <Input
+        done={done}
+        defaultValue={content}
+        onChange={handleChange}
+        ref={inputRef}
+      />
     </Root>
   );
 };
 
-const Root = styled.div<{ done?: boolean }>`
+const Root = styled.div`
   display: flex;
   align-items: center;
   padding: ${spaceSet(2, 1)};
   font-size: 20px;
-  color: ${({ done, theme }) =>
-    done
-      ? Color(color('text')({ theme })).lighten(2).string()
-      : color('text')({ theme })};
 `;
 
 const Icon = styled.svg<{ done?: boolean }>`
@@ -67,9 +68,12 @@ const Icon = styled.svg<{ done?: boolean }>`
       : color('main')({ theme })};
 `;
 
-const Input = styled.input`
+const Input = styled.input<{ done?: boolean }>`
   border: none;
   font-size: 20px;
+
+  color: ${({ done, theme }) =>
+    done ? lighterColor('text', 2)({ theme }) : color('text')({ theme })};
 
   :focus {
     outline: none;

@@ -13,5 +13,8 @@ export interface ListRepository {
     done: boolean;
   }): Promise<Item | null>;
   getListById(id: string): Promise<List | null>;
-  toggleItem(listId: string, itemId: string): Promise<boolean>;
+  updateItem(
+    options: { listId: string; itemId: string },
+    item: Omit<Item, 'id'>,
+  ): Promise<null | Item>;
 }

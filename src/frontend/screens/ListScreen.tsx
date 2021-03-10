@@ -10,7 +10,7 @@ import { Item } from './Item';
 
 type Props = {
   list: List;
-  toggleItem: (id: string) => () => void;
+  toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   addItem: () => Promise<void>;
 };
@@ -65,8 +65,10 @@ const Ul = styled.ul`
 `;
 
 const ListItem = styled.li`
-  :not(:last-of-type) {
-    border-bottom: 1px dashed ${color('listItemBorder')};
+  border-top: 1px dashed ${color('listItemBorder')};
+
+  :first-child {
+    border-top: none;
   }
 `;
 
