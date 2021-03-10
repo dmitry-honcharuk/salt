@@ -1,9 +1,9 @@
-import { Item } from 'core/entities/Item';
-import { List } from 'core/entities/List';
+import { ItemEntity } from 'core/entities/Item';
+import { ListEntity } from 'core/entities/List';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
 export function buildMemoryListRepository(): ListRepository {
-  const lists: List[] = [
+  const lists: ListEntity[] = [
     {
       id: '1',
       name: null,
@@ -30,7 +30,7 @@ export function buildMemoryListRepository(): ListRepository {
 
   return {
     createList: async ({ name, createdAt }) => {
-      const list: List = {
+      const list: ListEntity = {
         id: `${lists.length + 1}`,
         items: [],
         createdAt,
@@ -49,7 +49,11 @@ export function buildMemoryListRepository(): ListRepository {
         return null;
       }
 
-      const item: Item = { id: `${list.items.length + 1}`, content, done };
+      const item: ItemEntity = {
+        id: `${list.items.length + 1}`,
+        content,
+        done,
+      };
 
       list.items.push(item);
 

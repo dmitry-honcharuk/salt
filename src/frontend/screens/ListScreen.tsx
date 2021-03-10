@@ -1,5 +1,5 @@
 import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
-import { List } from 'core/entities/List';
+import { ItemEntity } from 'core/entities/Item';
 import { Button } from 'frontend/common/Button';
 import { Layout } from 'frontend/common/Layout';
 import { color, lighterColor, space, spaceSet } from 'frontend/theme-selectors';
@@ -9,19 +9,18 @@ import styled from 'styled-components';
 import { Item } from './Item';
 
 type Props = {
-  list: List;
+  items: ItemEntity[];
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   addItem: () => Promise<void>;
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
-  list,
+  items,
   toggleItem,
   updateContent,
   addItem,
 }) => {
-  const { items } = list;
   const [created, setCreated] = useState(false);
 
   return (

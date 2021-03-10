@@ -1,5 +1,4 @@
-import { List } from 'core/entities/List';
-import { NewList } from 'frontend/blocks/NewList';
+import { ListEntity } from 'core/entities/List';
 import { Button } from 'frontend/common/Button';
 import { H5 } from 'frontend/common/Typography';
 import { post } from 'frontend/services/api';
@@ -12,7 +11,7 @@ export const WelcomeScreen: FunctionComponent = () => {
   const { push } = useRouter();
 
   const createList = async () => {
-    const list = await post<List>('/api/lists', {});
+    const list = await post<ListEntity>('/api/lists', {});
 
     push(`/${list.id}`);
   };
@@ -54,8 +53,4 @@ const Title = styled(H5)`
 
 const CreateButton = styled(Button)`
   border-style: dashed;
-`;
-
-const Form = styled(NewList)`
-  width: 100%;
 `;

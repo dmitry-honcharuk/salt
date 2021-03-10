@@ -1,72 +1,107 @@
-import { List } from 'core/entities/List';
+import { ItemEntity } from 'core/entities/Item';
+import { ListEntity } from 'core/entities/List';
 import { buildGetListById } from 'core/use-cases/getListById';
 import { listRepository } from 'dependencies';
 import { ListScreen } from 'frontend/screens/ListScreen';
+import { addItem } from 'frontend/services/api/addItem';
 import { toggleItem } from 'frontend/services/api/toggleItem';
+import { updateItemContent } from 'frontend/services/api/updateItemContent';
 import produce from 'immer';
+import keyBy from 'lodash/keyBy';
+import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
 import { FunctionComponent, useState } from 'react';
 import { toast } from 'react-toastify';
 
-const ListPage: FunctionComponent<{ list: List }> = ({ list: rawList }) => {
-  const [list, setList] = useState(rawList);
+const ListPage: FunctionComponent<{ list: ListEntity }> = ({
+  list: rawList,
+}) => {
+  const [itemDict, setItemDict] = useState(keyBy(rawList.items, 'id'));
 
-  const setItemDone = (itemIndex: number, done: boolean) => {
-    const updatedList = produce(list, (draft) => {
-      draft.items[itemIndex].done = done;
+  const setItem = (itemId: string, item: ItemEntity) => {
+    setItemDict((dict) => ({ ...dict, [itemId]: item }));
+  };
+
+  const setItemDone = (item: ItemEntity, done: boolean) => {
+    const updatedItem = produce(item, (draft) => {
+      draft.done = done;
     });
 
-    setList(updatedList);
+    setItem(item.id, updatedItem);
+  };
+
+  const setItemContent = (item: ItemEntity, content: string) => {
+    const updatedItem = produce(item, (draft) => {
+      draft.content = content;
+    });
+
+    setItem(item.id, updatedItem);
   };
 
   const handleItemToggle = (id: string) => async () => {
-    const itemIndex = list.items.findIndex((item) => item.id === id);
-    const isDone = list.items[itemIndex].done;
+    const item = itemDict[id];
 
-    setItemDone(itemIndex, !isDone);
+    if (!item) {
+      return;
+    }
+
+    const isDone = item.done;
+
+    setItemDone(item, !isDone);
 
     try {
       await toggleItem({ listId: rawList.id, itemId: id });
     } catch (error) {
-      setItemDone(itemIndex, isDone);
+      setItemDone(item, isDone);
       toast.error('Could not update');
     }
   };
 
-  const updateContent = (id: string) => (newContent: string) => {
-    setList((l) => ({
-      ...l,
-      items: l.items.map((item) =>
-        item.id === id ? { ...item, content: newContent } : item,
-      ),
-    }));
+  const handleContentUpdate = (id: string) => async (newContent: string) => {
+    const item = itemDict[id];
+
+    if (!item) {
+      return;
+    }
+
+    setItemContent(item, newContent);
+
+    try {
+      await updateItemContent({
+        listId: rawList.id,
+        itemId: id,
+        content: newContent,
+      });
+    } catch (error) {
+      toast.error('Could not update');
+    }
   };
 
-  const addItem = async () => {
-    setList((l) => ({
-      ...l,
-      items: [
-        ...l.items,
-        { id: `${l.items.length + 1}`, content: '', done: false },
-      ],
-    }));
+  const handleAddItem = async () => {
+    try {
+      const item = await addItem({ listId: rawList.id, content: '' });
+
+      setItem(item.id, item);
+    } catch (error) {
+      toast.error('Could not create');
+    }
   };
 
   return (
     <ListScreen
-      list={list}
+      items={values(itemDict)}
       toggleItem={handleItemToggle}
-      updateContent={updateContent}
-      addItem={addItem}
+      updateContent={handleContentUpdate}
+      addItem={handleAddItem}
     />
   );
 };
 
 export default ListPage;
 
-export const getServerSideProps: GetServerSideProps<{ list: List }> = async ({
-  query,
-}) => {
+export const getServerSideProps: GetServerSideProps<{
+  list: ListEntity;
+}> = async ({ query }) => {
   const { id: queryId } = query;
 
   const [id] = Array.isArray(queryId) ? queryId : [queryId];

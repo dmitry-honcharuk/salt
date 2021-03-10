@@ -1,9 +1,9 @@
-import { List } from 'core/entities/List';
+import { ListEntity } from 'core/entities/List';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
 export function buildGetListById({ listRepo }: Deps) {
-  return async ({ listId: id }: Input): Promise<List | null> => {
+  return async ({ listId: id }: Input): Promise<ListEntity | null> => {
     if (!id) {
       throw new CoreError('Id is required');
     }

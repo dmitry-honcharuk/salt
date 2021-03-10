@@ -1,10 +1,10 @@
-import { List } from 'core/entities/List';
+import { ListEntity } from 'core/entities/List';
 import Link from 'next/link';
 import { FunctionComponent } from 'react';
 import { WelcomeScreen } from './WelcomeScreen';
 
 export type Props = {
-  lists: List[];
+  lists: ListEntity[];
 };
 
 export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {

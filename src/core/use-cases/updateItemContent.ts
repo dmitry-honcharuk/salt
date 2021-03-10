@@ -4,14 +4,18 @@ import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
 import omit from 'lodash/omit';
 
-export function buildToggleItem({ listRepository }: Dependencies) {
-  return async ({ listId, itemId }: Input): Promise<ItemEntity> => {
+export function buildUpdateItemContent({ listRepository }: Dependencies) {
+  return async ({ listId, itemId, content }: Input): Promise<ItemEntity> => {
     if (!listId) {
       throw new CoreError('listId is required.');
     }
 
     if (!itemId) {
       throw new CoreError('itemId is required.');
+    }
+
+    if (!content) {
+      throw new CoreError('content is required.');
     }
 
     const list = await listRepository.getListById(listId);
@@ -27,7 +31,7 @@ export function buildToggleItem({ listRepository }: Dependencies) {
     }
 
     const updatedItem = produce(item, (draft) => {
-      draft.done = !draft.done;
+      draft.content = content;
     });
 
     const result = await listRepository.updateItem(
@@ -49,4 +53,5 @@ type Dependencies = {
 type Input = {
   listId?: string;
   itemId?: string;
+  content?: string;
 };
