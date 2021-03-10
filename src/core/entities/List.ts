@@ -1,7 +1,8 @@
-import { Item } from './Item';
+import { ItemEntity } from './Item';
 
-export interface List {
+export interface ListEntity {
   id: string;
-  name: string;
-  items: Item[];
+  name: string | null;
+  items: ItemEntity[];
+  createdAt: number;
 }

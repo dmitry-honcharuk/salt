@@ -36,7 +36,7 @@ export default class MyDocument extends Document {
 
   render() {
     return (
-      <Html>
+      <Html lang='en'>
         <Head>
           <link
             rel='stylesheet'
@@ -50,7 +50,6 @@ export default class MyDocument extends Document {
           <link rel='apple-touch-icon' href='/icons/icon-192x192.png' />
           <link rel='manifest' href='/manifest.json' />
           <meta name='theme-color' content='#abf1d1' />
-          <title>Salt</title>
         </Head>
         <body>
           <Main />

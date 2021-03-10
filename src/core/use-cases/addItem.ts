@@ -1,18 +1,18 @@
-import { Item } from 'core/entities/Item';
+import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
-export function buildAddItem({ listRepo }: Deps) {
-  return async ({ listId, content }: Input): Promise<Item> => {
+export function buildAddItem({ listRepository: listRepo }: Deps) {
+  return async ({ listId, content }: Input): Promise<ItemEntity> => {
     if (!listId) {
       throw new CoreError('List id is required');
     }
 
-    if (!content) {
-      throw new CoreError('Content is required');
-    }
-
-    const item = await listRepo.addItem({ listId, content });
+    const item = await listRepo.addItem({
+      listId,
+      content: content ?? '',
+      done: false,
+    });
 
     if (!item) {
       throw new CoreError('Could not add item');
@@ -23,7 +23,7 @@ export function buildAddItem({ listRepo }: Deps) {
 }
 
 type Deps = {
-  listRepo: ListRepository;
+  listRepository: ListRepository;
 };
 type Input = {
   listId?: string;
