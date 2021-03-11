@@ -107,7 +107,7 @@ export const getServerSideProps: GetServerSideProps<{
   const [id] = Array.isArray(queryId) ? queryId : [queryId];
 
   try {
-    const list = await buildGetListById({ listRepo: listRepository })({
+    const list = await buildGetListById({ listRepository })({
       listId: id,
     });
 

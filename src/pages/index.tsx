@@ -1,3 +1,4 @@
+import { ListEntity } from 'core/entities/List';
 import { buildGetLists } from 'core/use-cases/getLists';
 import { listRepository } from 'dependencies';
 import { HomeScreen, Props } from 'frontend/screens/HomeScreen';
@@ -10,12 +11,14 @@ const Home: FunctionComponent<Props> = ({ lists }) => {
 
 export default Home;
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const getLists = buildGetLists({ listRepo: listRepository });
+export const getServerSideProps: GetServerSideProps<{
+  lists: ListEntity[];
+}> = async () => {
+  const getLists = buildGetLists({ listRepository });
+
+  const lists = await getLists();
 
   return {
-    props: {
-      lists: await getLists(),
-    },
+    props: { lists },
   };
 };

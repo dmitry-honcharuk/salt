@@ -1,10 +1,10 @@
 import { ListEntity } from 'core/entities/List';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
-export function buildCreateList({ listRepo }: Deps) {
+export function buildCreateList({ listRepository: listRepo }: Deps) {
   return async ({ name }: Input): Promise<ListEntity> => {
     const list = await listRepo.createList({
-      name: name ?? null,
+      name: name ?? '',
       createdAt: Date.now(),
     });
 
@@ -13,7 +13,7 @@ export function buildCreateList({ listRepo }: Deps) {
 }
 
 type Deps = {
-  listRepo: ListRepository;
+  listRepository: ListRepository;
 };
 type Input = {
   name?: string;

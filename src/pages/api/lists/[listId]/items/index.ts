@@ -9,7 +9,7 @@ export default createRoute().post(async (req, res) => {
     body: { content },
   } = req;
 
-  const addItem = buildAddItem({ listRepository: listRepository });
+  const addItem = buildAddItem({ listRepository });
 
   const item = await addItem({
     listId: normalizeQueryParam(listId),

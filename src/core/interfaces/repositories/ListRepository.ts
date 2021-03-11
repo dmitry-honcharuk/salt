@@ -2,10 +2,7 @@ import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
 
 export interface ListRepository {
-  createList(options: {
-    name: string | null;
-    createdAt: number;
-  }): Promise<ListEntity>;
+  createList(options: { name: string; createdAt: number }): Promise<ListEntity>;
   getLists(): Promise<ListEntity[]>;
   addItem(options: {
     listId: string;

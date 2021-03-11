@@ -1,3 +1,3 @@
-import { buildMemoryListRepository } from 'repositories/ListRepository';
+import { buildMongoListRepository } from 'repositories/mongo/ListRepository';
 
-export const listRepository = buildMemoryListRepository();
+export const listRepository = buildMongoListRepository();
