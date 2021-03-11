@@ -1,18 +1,23 @@
 import { Db, MongoClient } from 'mongodb';
 import { CONNECTION_URL } from './connectionUrl';
 
-export async function onConnection<T>(
-  cb: (client: Db) => Promise<T>,
-): Promise<T> {
-  const client = new MongoClient(CONNECTION_URL);
+let cachedConnection: Db | null = null;
+
+export async function getDatabase() {
+  if (cachedConnection) {
+    return cachedConnection;
+  }
+
+  const client = new MongoClient(CONNECTION_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
   await client.connect();
 
   const database = client.db(process.env.DB_NAME);
 
-  const result = await cb(database);
+  cachedConnection = database;
 
-  await client.close();
-
-  return result;
+  return database;
 }

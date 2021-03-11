@@ -2,122 +2,120 @@ import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { ObjectId, WithId } from 'mongodb';
-import { onConnection } from './mongo.client';
+import { getDatabase } from './mongo.client';
 
 type ListSchema = Omit<ListEntity, 'id'>;
 
 export function buildMongoListRepository(): ListRepository {
   return {
     createList: async ({ name }) => {
-      const list = await onConnection(async (db) => {
-        const listCollection = db.collection<ListSchema>('lists');
+      const db = await getDatabase();
 
-        const list = {
-          name,
-          items: [],
-          createdAt: Date.now(),
-        };
+      const listCollection = db.collection<ListSchema>('lists');
 
-        const entry = await listCollection.insertOne(list);
+      const list = {
+        name,
+        items: [],
+        createdAt: Date.now(),
+      };
 
-        return {
-          ...list,
-          id: entry.insertedId.toHexString(),
-        };
-      });
+      const entry = await listCollection.insertOne(list);
 
-      return list;
+      return {
+        ...list,
+        id: entry.insertedId.toHexString(),
+      };
     },
-    getLists: () => {
-      return onConnection(async (db) => {
-        const listCollection = db.collection<WithId<ListSchema>>('lists');
+    getLists: async () => {
+      const db = await getDatabase();
 
-        const cursor = listCollection.find({});
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
 
-        return cursor
-          .map(({ _id, ...list }) => ({ ...list, id: _id.toHexString() }))
-          .toArray();
-      });
+      const cursor = listCollection.find({});
+
+      return cursor
+        .map(({ _id, ...list }) => ({ ...list, id: _id.toHexString() }))
+        .toArray();
     },
     addItem: async ({ listId, content, done }) => {
-      return onConnection(async (db) => {
-        const listCollection = db.collection<WithId<ListSchema>>('lists');
-        const filter = {
-          _id: new ObjectId(listId),
-        };
+      const db = await getDatabase();
 
-        const list = await listCollection.findOne(filter);
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const filter = {
+        _id: new ObjectId(listId),
+      };
 
-        if (!list) {
-          return null;
-        }
+      const list = await listCollection.findOne(filter);
 
-        const item: ItemEntity = {
-          id: genereteItemId(list),
-          content,
-          done,
-        };
+      if (!list) {
+        return null;
+      }
 
-        const { modifiedCount } = await listCollection.updateOne(filter, {
-          $set: { items: [...list.items, item] },
-        });
+      const item: ItemEntity = {
+        id: genereteItemId(list),
+        content,
+        done,
+      };
 
-        if (!modifiedCount) {
-          return null;
-        }
-
-        return item;
+      const { modifiedCount } = await listCollection.updateOne(filter, {
+        $set: { items: [...list.items, item] },
       });
+
+      if (!modifiedCount) {
+        return null;
+      }
+
+      return item;
     },
     getListById: async (listId) => {
-      return onConnection(async (db) => {
-        const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const db = await getDatabase();
 
-        const list = await listCollection.findOne({
-          _id: new ObjectId(listId),
-        });
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
 
-        if (!list) {
-          return null;
-        }
-
-        const { _id, ...fields } = list;
-
-        return {
-          ...fields,
-          id: _id.toHexString(),
-        };
+      const list = await listCollection.findOne({
+        _id: new ObjectId(listId),
       });
+
+      if (!list) {
+        return null;
+      }
+
+      const { _id, ...fields } = list;
+
+      return {
+        ...fields,
+        id: _id.toHexString(),
+      };
     },
     updateItem: async ({ listId, itemId }, itemFields) => {
-      return onConnection(async (db) => {
-        const listCollection = db.collection<WithId<ListSchema>>('lists');
-        const filter = {
-          _id: new ObjectId(listId),
-        };
+      const db = await getDatabase();
 
-        const list = await listCollection.findOne(filter);
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const filter = {
+        _id: new ObjectId(listId),
+      };
 
-        if (!list) {
-          return null;
-        }
+      const list = await listCollection.findOne(filter);
 
-        const updatedItem = { id: itemId, ...itemFields };
+      if (!list) {
+        return null;
+      }
 
-        const { modifiedCount } = await listCollection.updateOne(filter, {
-          $set: {
-            items: list.items.map((item) =>
-              item.id === itemId ? updatedItem : item,
-            ),
-          },
-        });
+      const updatedItem = { id: itemId, ...itemFields };
 
-        if (!modifiedCount) {
-          return null;
-        }
-
-        return updatedItem;
+      const { modifiedCount } = await listCollection.updateOne(filter, {
+        $set: {
+          items: list.items.map((item) =>
+            item.id === itemId ? updatedItem : item,
+          ),
+        },
       });
+
+      if (!modifiedCount) {
+        return null;
+      }
+
+      return updatedItem;
     },
   };
 }
