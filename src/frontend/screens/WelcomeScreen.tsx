@@ -1,7 +1,6 @@
-import { ListEntity } from 'core/entities/List';
 import { Button } from 'frontend/common/Button';
 import { H5 } from 'frontend/common/Typography';
-import { post } from 'frontend/services/api';
+import { createList } from 'frontend/services/api/createList';
 import { space } from 'frontend/theme-selectors';
 import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
@@ -10,8 +9,8 @@ import styled from 'styled-components';
 export const WelcomeScreen: FunctionComponent = () => {
   const { push } = useRouter();
 
-  const createList = async () => {
-    const list = await post<ListEntity>('/api/lists', {});
+  const handleCreateList = async () => {
+    const list = await createList();
 
     push(`/${list.id}`);
   };
@@ -20,7 +19,9 @@ export const WelcomeScreen: FunctionComponent = () => {
     <Root>
       <Content>
         <Title>You don't seem to have any lists yet</Title>
-        <CreateButton onClick={createList}>Create a list then!</CreateButton>
+        <CreateButton onClick={handleCreateList}>
+          Create a list then!
+        </CreateButton>
       </Content>
     </Root>
   );
