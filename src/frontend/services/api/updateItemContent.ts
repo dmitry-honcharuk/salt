@@ -1,5 +1,5 @@
 import { ItemEntity } from 'core/entities/Item';
-import { put } from '../api';
+import { put } from './client';
 
 export const updateItemContent = (options: {
   listId: string;
