@@ -20,12 +20,6 @@ export default createRoute().put(async (req, res) => {
     content,
   });
 
-  console.log({
-    listId,
-    itemId,
-    content,
-  });
-
   emit<ItemContentChangedEvent>(TOPICS.ITEM_CONTENT_CHANGED, {
     listId,
     itemId,
