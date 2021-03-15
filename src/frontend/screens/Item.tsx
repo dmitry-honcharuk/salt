@@ -2,8 +2,7 @@ import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
 import Color from 'color';
 import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
-import debounce from 'lodash/debounce';
-import { ChangeEvent, FunctionComponent, useEffect, useRef } from 'react';
+import { FunctionComponent, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 type Props = {
@@ -21,11 +20,6 @@ export const Item: FunctionComponent<Props> = ({
   onItemChange,
   focused,
 }) => {
-  const { current: handleChange } = useRef(
-    debounce((event: ChangeEvent<HTMLInputElement>) => {
-      onItemChange(event.target.value);
-    }, 500),
-  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,7 +39,9 @@ export const Item: FunctionComponent<Props> = ({
       <Input
         done={done}
         defaultValue={content}
-        onChange={handleChange}
+        onChange={(event) => {
+          onItemChange(event.target.value);
+        }}
         ref={inputRef}
       />
     </Root>
