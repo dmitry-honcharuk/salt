@@ -16,11 +16,5 @@ export default createRoute().put(async (req, res) => {
     itemId,
   });
 
-  // emit<ItemToggledEvent>(TOPICS.ITEM_TOGGLED, {
-  //   listId,
-  //   itemId,
-  //   done: updatedItem.done,
-  // });
-
   res.json(updatedItem);
 });

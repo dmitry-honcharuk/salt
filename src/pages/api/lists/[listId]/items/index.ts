@@ -18,7 +18,5 @@ export default createRoute().post(async (req, res) => {
     content,
   });
 
-  // emit<ItemAddedEvent>(TOPICS.ITEM_ADDED, { listId, item });
-
   res.json(item);
 });
