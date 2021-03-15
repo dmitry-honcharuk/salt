@@ -38,7 +38,7 @@ export const Item: FunctionComponent<Props> = ({
 
       <Input
         done={done}
-        defaultValue={content}
+        value={content}
         onChange={(event) => {
           onItemChange(event.target.value);
         }}
