@@ -6,20 +6,15 @@ import { ListScreen } from 'frontend/screens/ListScreen';
 import { addItem } from 'frontend/services/api/addItem';
 import { toggleItem } from 'frontend/services/api/toggleItem';
 import { updateItemContent } from 'frontend/services/api/updateItemContent';
-import { useSubscribe } from 'frontend/sockets/hooks/useSubscribe';
+import { useSocket } from 'frontend/sockets/hooks/useSocket';
 import produce from 'immer';
 import debounce from 'lodash/debounce';
 import keyBy from 'lodash/keyBy';
 import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
-import { FunctionComponent, useCallback, useState } from 'react';
+import { FunctionComponent, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import {
-  ItemAddedEvent,
-  ItemContentChangedEvent,
-  ItemToggledEvent,
-  TOPICS,
-} from 'types/socket';
+import { TOPICS } from 'types/socket';
 
 const debauncedUpdateItemContent = debounce(updateItemContent, 500);
 
@@ -27,6 +22,8 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
 }) => {
   const [itemDict, setItemDict] = useState(keyBy(rawList.items, 'id'));
+
+  const socket = useSocket();
 
   const setItem = useCallback(
     (itemId: string, item: ItemEntity) => {
@@ -57,21 +54,16 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     [setItem],
   );
 
-  useSubscribe<ItemAddedEvent>(
-    TOPICS.ITEM_ADDED,
-    ({ listId, item }) => {
+  useEffect(() => {
+    socket.on(TOPICS.ITEM_ADDED, ({ listId, item }) => {
       if (listId !== rawList.id) {
         return;
       }
 
       setItem(item.id, item);
-    },
-    [setItem],
-  );
+    });
 
-  useSubscribe<ItemToggledEvent>(
-    TOPICS.ITEM_TOGGLED,
-    ({ listId, itemId, done }) => {
+    socket.on(TOPICS.ITEM_TOGGLED, ({ listId, itemId, done }) => {
       if (listId !== rawList.id) {
         return;
       }
@@ -83,13 +75,9 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       }
 
       setItemDone(item, done);
-    },
-    [setItemDone, itemDict],
-  );
+    });
 
-  useSubscribe<ItemContentChangedEvent>(
-    TOPICS.ITEM_CONTENT_CHANGED,
-    ({ listId, itemId, content }) => {
+    socket.on(TOPICS.ITEM_CONTENT_CHANGED, ({ listId, itemId, content }) => {
       if (listId !== rawList.id) {
         return;
       }
@@ -101,9 +89,56 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       }
 
       setItemContent(item, content);
-    },
-    [setItemContent, itemDict],
-  );
+    });
+  }, []);
+
+  // useSubscribe<ItemAddedEvent>(
+  //   TOPICS.ITEM_ADDED,
+  //   ({ listId, item }) => {
+  //     if (listId !== rawList.id) {
+  //       return;
+  //     }
+
+  //     setItem(item.id, item);
+  //   },
+  //   [setItem],
+  // );
+
+  // useSubscribe<ItemToggledEvent>(
+  //   TOPICS.ITEM_TOGGLED,
+  //   ({ listId, itemId, done }) => {
+  //     if (listId !== rawList.id) {
+  //       return;
+  //     }
+
+  //     const item = itemDict[itemId];
+
+  //     if (!item) {
+  //       return;
+  //     }
+
+  //     setItemDone(item, done);
+  //   },
+  //   [setItemDone, itemDict],
+  // );
+
+  // useSubscribe<ItemContentChangedEvent>(
+  //   TOPICS.ITEM_CONTENT_CHANGED,
+  //   ({ listId, itemId, content }) => {
+  //     if (listId !== rawList.id) {
+  //       return;
+  //     }
+
+  //     const item = itemDict[itemId];
+
+  //     if (!item) {
+  //       return;
+  //     }
+
+  //     setItemContent(item, content);
+  //   },
+  //   [setItemContent, itemDict],
+  // );
 
   const handleItemToggle = (id: string) => async () => {
     const item = itemDict[id];
@@ -118,6 +153,12 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
 
     try {
       await toggleItem({ listId: rawList.id, itemId: id });
+
+      socket.emit(TOPICS.ITEM_TOGGLED, {
+        listId: rawList.id,
+        itemId: id,
+        done: !isDone,
+      });
     } catch (error) {
       setItemDone(item, isDone);
       toast.error('Could not update');
@@ -139,6 +180,11 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
         itemId: id,
         content: newContent,
       });
+      socket.emit(TOPICS.ITEM_CONTENT_CHANGED, {
+        listId: rawList.id,
+        itemId: id,
+        content: newContent,
+      });
     } catch (error) {
       toast.error('Could not update');
     }
@@ -149,6 +195,10 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       const item = await addItem({ listId: rawList.id, content: '' });
 
       setItem(item.id, item);
+      socket.emit(TOPICS.ITEM_ADDED, {
+        listId: rawList.id,
+        item: item,
+      });
     } catch (error) {
       toast.error('Could not create');
     }
