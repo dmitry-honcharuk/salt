@@ -5,8 +5,7 @@ import { useSocket } from './useSocket';
 export function useSubscribe<Ev extends Event>(
   topic: Ev['topic'],
   callback: (payload: Ev['payload']) => void,
-  deps: any[] = [],
-) {
+): void {
   const socket = useSocket();
 
   useEffect(() => {
@@ -15,5 +14,5 @@ export function useSubscribe<Ev extends Event>(
     return () => {
       socket.off(topic, callback);
     };
-  }, deps);
+  }, [topic, callback, socket]);
 }
