@@ -195,7 +195,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
-  const hadnleNameChange = async (newName: string) => {
+  const handleNameChange = async (newName: string) => {
     const oldName = name;
 
     setName(newName);
@@ -219,7 +219,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     <ListScreen
       name={name}
       createdAt={rawList.createdAt}
-      setName={hadnleNameChange}
+      setName={handleNameChange}
       items={values(itemDict)}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
