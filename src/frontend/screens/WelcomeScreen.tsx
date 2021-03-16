@@ -1,5 +1,6 @@
 import { Button } from 'frontend/common/Button';
 import { H5 } from 'frontend/common/Typography';
+import { usePromise } from 'frontend/hooks/usePromise';
 import { createList } from 'frontend/services/api/createList';
 import { space } from 'frontend/theme-selectors';
 import { useRouter } from 'next/router';
@@ -8,9 +9,10 @@ import styled from 'styled-components';
 
 export const WelcomeScreen: FunctionComponent = () => {
   const { push } = useRouter();
+  const [create, { pending }] = usePromise(() => createList());
 
   const handleCreateList = async () => {
-    const list = await createList();
+    const list = await create();
 
     push(`/${list.id}`);
   };
@@ -19,7 +21,7 @@ export const WelcomeScreen: FunctionComponent = () => {
     <Root>
       <Content>
         <Title>You don't seem to have any lists yet</Title>
-        <CreateButton onClick={handleCreateList}>
+        <CreateButton onClick={handleCreateList} disabled={pending}>
           Create a list then!
         </CreateButton>
       </Content>
