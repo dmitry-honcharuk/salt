@@ -1,6 +1,5 @@
 import { ArrowRightSquare } from '@styled-icons/bootstrap';
 import { ListEntity } from 'core/entities/List';
-import { format, isToday } from 'date-fns';
 import { Button } from 'frontend/common/Button';
 import { Layout } from 'frontend/common/Layout';
 import { H1, H4 } from 'frontend/common/Typography';
@@ -9,6 +8,7 @@ import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
 import Link from 'next/link';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
+import { getDisplayTime } from 'utils/getDisplayTime';
 
 export type Props = {
   lists: ListEntity[];
@@ -38,7 +38,7 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists: rawLists }) => {
           <ListItem key={id}>
             <Link href={`/${id}`}>
               <ListLink href={`/${id}`} pale={!name}>
-                <ListLabel>{name || getTime(createdAt)}</ListLabel>
+                <ListLabel>{name || getDisplayTime(createdAt)}</ListLabel>
                 <ArrowIcon />
               </ListLink>
             </Link>
@@ -48,14 +48,6 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists: rawLists }) => {
     </Layout>
   );
 };
-
-function getTime(unix: number) {
-  if (isToday(unix)) {
-    return format(unix, `'Today at' HH:mm`);
-  }
-
-  return format(unix, `do 'of' LLLL',' yyyy`);
-}
 
 const Header = styled.header`
   padding: ${spaceSet(2, 1)};

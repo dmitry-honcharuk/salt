@@ -14,10 +14,6 @@ export function buildUpdateItemContent({ listRepository }: Dependencies) {
       throw new CoreError('itemId is required.');
     }
 
-    if (!content) {
-      throw new CoreError('content is required.');
-    }
-
     const list = await listRepository.getListById(listId);
 
     if (!list) {
@@ -31,7 +27,7 @@ export function buildUpdateItemContent({ listRepository }: Dependencies) {
     }
 
     const updatedItem = produce(item, (draft) => {
-      draft.content = content;
+      draft.content = content ?? '';
     });
 
     const result = await listRepository.updateItem(

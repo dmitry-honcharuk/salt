@@ -117,6 +117,26 @@ export function buildMongoListRepository(): ListRepository {
 
       return updatedItem;
     },
+    updateListName: async ({ listId, name }) => {
+      const db = await getDatabase();
+
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+
+      const { value } = await listCollection.findOneAndUpdate(
+        {
+          _id: new ObjectId(listId),
+        },
+        { $set: { name } },
+      );
+
+      if (!value) {
+        return null;
+      }
+
+      const { _id, ...list } = value;
+
+      return { id: _id.toHexString(), ...list, name };
+    },
   };
 }
 

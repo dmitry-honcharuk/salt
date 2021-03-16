@@ -1,4 +1,4 @@
-export async function post<R = any, B extends object = any>(
+export async function post<R = any, B extends Record<string, unknown> = any>(
   url: string,
   body: B,
 ): Promise<R> {
@@ -22,7 +22,7 @@ export async function post<R = any, B extends object = any>(
   return data;
 }
 
-export async function put<R = any, B extends object = any>(
+export async function put<R = any, B extends Record<string, unknown> = any>(
   url: string,
   body: B,
 ): Promise<R> {
@@ -46,8 +46,32 @@ export async function put<R = any, B extends object = any>(
   return data;
 }
 
-export async function get(url: string) {
+export async function get<T = any>(url: string): Promise<T> {
   const response = await fetch(url);
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw {
+      message: response.status < 500 ? data.message : 'Something went wrong',
+      status: response.status,
+    };
+  }
+
+  return data;
+}
+
+export async function patch<R = any, B extends Record<string, unknown> = any>(
+  url: string,
+  body: B,
+): Promise<R> {
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
 
   const data = await response.json();
 

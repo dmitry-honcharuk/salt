@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Event } from 'types/socket';
 import { useSocket } from './useSocket';
 
-export function useSubscribe<Ev extends Event>(
+export function useSubscribe<Ev extends Event = never>(
   topic: Ev['topic'],
   callback: (payload: Ev['payload']) => void,
 ): void {

@@ -5,7 +5,8 @@ import { Layout } from 'frontend/common/Layout';
 import { color, lighterColor, space, spaceSet } from 'frontend/theme-selectors';
 import Link from 'next/link';
 import { FunctionComponent, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+import { getDisplayTime } from 'utils/getDisplayTime';
 import { Item } from './Item';
 
 type Props = {
@@ -13,6 +14,9 @@ type Props = {
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   addItem: () => Promise<void>;
+  name?: string;
+  setName: (name: string) => void;
+  createdAt: number;
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
@@ -20,6 +24,9 @@ export const ListScreen: FunctionComponent<Props> = ({
   toggleItem,
   updateContent,
   addItem,
+  setName,
+  name,
+  createdAt,
 }) => {
   const [created, setCreated] = useState(false);
 
@@ -40,6 +47,13 @@ export const ListScreen: FunctionComponent<Props> = ({
           +
         </AddItemButton>
       </Header>
+      <NameWrapper>
+        <NameInput
+          placeholder={getDisplayTime(createdAt)}
+          value={name}
+          onChange={({ target }) => setName(target.value)}
+        />
+      </NameWrapper>
       <Ul>
         {items.map(({ id, content, done }, index) => (
           <ListItem key={id}>
@@ -98,4 +112,35 @@ const BackLink = styled.a`
   height: ${spaceSet(8)};
   width: ${spaceSet(8)};
   cursor: pointer;
+`;
+
+const NameWrapper = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const blink = keyframes`
+ from {
+    border-right: 5px solid black;
+  }
+
+  to {
+    border-right: 5px solid transparent;
+  }
+`;
+
+const NameInput = styled.input`
+  color: ${lighterColor('text', 1)};
+  border: none;
+  border-right: 5px solid ${color('nameFieldBorder')};
+  border-radius: 0;
+  padding: ${spaceSet(1, 2)};
+  font-size: 1.5rem;
+  text-align: right;
+  transition: border-color 100ms;
+
+  :focus {
+    outline: none;
+    animation: ${blink} 800ms linear alternate infinite;
+  }
 `;
