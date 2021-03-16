@@ -133,6 +133,7 @@ const NameInput = styled.input`
   color: ${lighterColor('text', 1)};
   border: none;
   border-right: 5px solid ${color('nameFieldBorder')};
+  border-radius: 0;
   padding: ${spaceSet(1, 2)};
   font-size: 1.5rem;
   text-align: right;
