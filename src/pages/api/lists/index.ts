@@ -1,20 +1,23 @@
 import { buildCreateList } from 'core/use-cases/createList';
 import { buildGetLists } from 'core/use-cases/getLists';
 import { listRepository } from 'dependencies';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { createRoute } from 'utils/api/route';
 
-export default createRoute()
-  .get(async (req, res) => {
-    const getLists = buildGetLists({ listRepository });
+export default createRoute().get(getAllLists).post(createList);
 
-    res.json(await getLists());
-  })
-  .post(async (req, res) => {
-    const { body } = req;
+async function getAllLists(req: NextApiRequest, res: NextApiResponse) {
+  const getLists = buildGetLists({ listRepository });
 
-    const createList = buildCreateList({ listRepository });
+  res.json(await getLists());
+}
 
-    const list = await createList(body);
+async function createList(req: NextApiRequest, res: NextApiResponse) {
+  const { body } = req;
 
-    res.json(list);
-  });
+  const createList = buildCreateList({ listRepository });
+
+  const list = await createList(body);
+
+  res.json(list);
+}

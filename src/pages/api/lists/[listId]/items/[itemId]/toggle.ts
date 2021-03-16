@@ -1,9 +1,12 @@
 import { buildToggleItem } from 'core/use-cases/toggleItem';
 import { listRepository } from 'dependencies';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { createRoute } from 'utils/api/route';
 import { normalizeQueryParam } from 'utils/normalizeQueryParam';
 
-export default createRoute().put(async (req, res) => {
+export default createRoute().put(toggleItem);
+
+async function toggleItem(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery, itemId: itemIdQuery },
   } = req;
@@ -17,4 +20,4 @@ export default createRoute().put(async (req, res) => {
   });
 
   res.json(updatedItem);
-});
+}

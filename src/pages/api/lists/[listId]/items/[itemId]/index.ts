@@ -1,9 +1,12 @@
 import { buildUpdateItemContent } from 'core/use-cases/updateItemContent';
 import { listRepository } from 'dependencies';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { createRoute } from 'utils/api/route';
 import { normalizeQueryParam } from 'utils/normalizeQueryParam';
 
-export default createRoute().put(async (req, res) => {
+export default createRoute().put(updateContent);
+
+async function updateContent(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery, itemId: itemIdQuery },
     body: { content },
@@ -19,4 +22,4 @@ export default createRoute().put(async (req, res) => {
   });
 
   res.json(updatedItem);
-});
+}

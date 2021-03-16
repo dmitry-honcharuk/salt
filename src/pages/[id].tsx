@@ -6,6 +6,7 @@ import { ListScreen } from 'frontend/screens/ListScreen';
 import { addItem } from 'frontend/services/api/addItem';
 import { toggleItem } from 'frontend/services/api/toggleItem';
 import { updateItemContent } from 'frontend/services/api/updateItemContent';
+import { updateListName } from 'frontend/services/api/updateListName';
 import { useEmit } from 'frontend/sockets/hooks/useEmit';
 import { useSubscribe } from 'frontend/sockets/hooks/useSubscribe';
 import produce from 'immer';
@@ -19,6 +20,7 @@ import {
   ItemAddedEvent,
   ItemContentChangedEvent,
   ItemToggledEvent,
+  ListNameChangedEvent,
   TOPICS,
 } from 'types/socket';
 
@@ -28,6 +30,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
 }) => {
   const [itemDict, setItemDict] = useState(keyBy(rawList.items, 'id'));
+  const [name, setName] = useState(rawList.name);
 
   const emit = useEmit();
 
@@ -114,6 +117,20 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     ),
   );
 
+  useSubscribe<ListNameChangedEvent>(
+    TOPICS.LIST_NAME_CHANGED,
+    useCallback(
+      ({ listId, name }) => {
+        if (listId !== rawList.id) {
+          return;
+        }
+
+        setName(name);
+      },
+      [rawList.id],
+    ),
+  );
+
   const handleItemToggle = (id: string) => async () => {
     const item = itemDict[id];
 
@@ -178,8 +195,31 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
+  const hadnleNameChange = async (newName: string) => {
+    const oldName = name;
+
+    setName(newName);
+
+    try {
+      await updateListName({
+        listId: rawList.id,
+        name: newName,
+      });
+      emit<ListNameChangedEvent>(TOPICS.LIST_NAME_CHANGED, {
+        listId: rawList.id,
+        name: newName,
+      });
+    } catch (error) {
+      setName(oldName);
+      toast.error('Could not update');
+    }
+  };
+
   return (
     <ListScreen
+      name={name}
+      createdAt={rawList.createdAt}
+      setName={hadnleNameChange}
       items={values(itemDict)}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
