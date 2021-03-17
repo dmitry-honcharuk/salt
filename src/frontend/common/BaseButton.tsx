@@ -1,7 +1,7 @@
-import { color, space } from 'frontend/theme-selectors';
+import { color, lighterColor, space } from 'frontend/theme-selectors';
 import styled from 'styled-components';
 
-export const Button = styled.button`
+export const BaseButton = styled.button`
   background-color: transparent;
   border: 3px solid ${color('main')};
   padding: ${space(2)}px;
@@ -11,11 +11,17 @@ export const Button = styled.button`
   cursor: pointer;
   color: inherit;
 
-  &:focus {
+  :focus {
     outline: none;
   }
 
-  &:active {
+  :active {
     background-color: ${color('main')};
+  }
+
+  &[disabled] {
+    border-color: ${lighterColor('text', 2)};
+    color: ${lighterColor('text', 2)};
+    cursor: default;
   }
 `;

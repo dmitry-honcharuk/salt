@@ -1,19 +1,20 @@
 import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
 import { ItemEntity } from 'core/entities/Item';
-import { Button } from 'frontend/common/Button';
 import { Layout } from 'frontend/common/Layout';
-import { color, lighterColor, space, spaceSet } from 'frontend/theme-selectors';
+import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
+import { DisplayableItem } from 'frontend/types/DisplayableItem';
 import Link from 'next/link';
-import { FunctionComponent, useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import { FunctionComponent } from 'react';
+import styled from 'styled-components';
 import { getDisplayTime } from 'utils/getDisplayTime';
 import { Item } from './Item';
+import { NewItemRow } from './NewItemRow';
 
 type Props = {
-  items: ItemEntity[];
+  items: DisplayableItem[];
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
-  addItem: () => Promise<void>;
+  addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
   createdAt: number;
@@ -28,8 +29,6 @@ export const ListScreen: FunctionComponent<Props> = ({
   name,
   createdAt,
 }) => {
-  const [created, setCreated] = useState(false);
-
   return (
     <Layout>
       <Header>
@@ -38,32 +37,24 @@ export const ListScreen: FunctionComponent<Props> = ({
             <Arrow90degLeft height={20} />
           </BackLink>
         </Link>
-        <AddItemButton
-          onClick={async () => {
-            await addItem();
-            setCreated(true);
-          }}
-        >
-          +
-        </AddItemButton>
+        <NameWrapper>
+          <NameInput
+            placeholder={getDisplayTime(createdAt)}
+            value={name}
+            onChange={({ target }) => setName(target.value)}
+          />
+        </NameWrapper>
       </Header>
-      <NameWrapper>
-        <NameInput
-          placeholder={getDisplayTime(createdAt)}
-          value={name}
-          onChange={({ target }) => setName(target.value)}
-        />
-      </NameWrapper>
+      <NewItemRow onCreate={addItem} />
       <Ul>
-        {items.map(({ id, content, done }, index) => (
-          <ListItem key={id}>
+        {items.map(({ id, displayId, content, done }) => (
+          <ListItem key={displayId}>
             <Item
-              id={id}
+              pending={!id}
               content={content}
               done={done}
-              onToggle={toggleItem(id)}
-              onItemChange={updateContent(id)}
-              focused={created && index === items.length - 1}
+              onToggle={toggleItem(displayId)}
+              onItemChange={updateContent(displayId)}
             />
           </ListItem>
         ))}
@@ -93,16 +84,6 @@ const Header = styled.header`
   justify-content: space-between;
 `;
 
-const AddItemButton = styled(Button)`
-  border: 2px dashed ${color('addItemButtonColor')};
-  color: ${color('addItemButtonColor')};
-  height: ${space(8)}px;
-  width: ${space(30)}px;
-  font-weight: bold;
-  font-size: 25px;
-  padding: 0;
-`;
-
 const BackLink = styled.a`
   border: 2px dashed ${lighterColor('text', 2)};
   color: ${lighterColor('text', 2)};
@@ -119,20 +100,10 @@ const NameWrapper = styled.div`
   justify-content: flex-end;
 `;
 
-const blink = keyframes`
- from {
-    border-right: 5px solid black;
-  }
-
-  to {
-    border-right: 5px solid transparent;
-  }
-`;
-
 const NameInput = styled.input`
   color: ${lighterColor('text', 1)};
   border: none;
-  border-right: 5px solid ${color('nameFieldBorder')};
+  border-bottom: 1px dashed ${color('nameFieldBorder')};
   border-radius: 0;
   padding: ${spaceSet(1, 2)};
   font-size: 1.5rem;
@@ -141,6 +112,5 @@ const NameInput = styled.input`
 
   :focus {
     outline: none;
-    animation: ${blink} 800ms linear alternate infinite;
   }
 `;

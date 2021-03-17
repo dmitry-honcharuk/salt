@@ -9,9 +9,12 @@ import { updateItemContent } from 'frontend/services/api/updateItemContent';
 import { updateListName } from 'frontend/services/api/updateListName';
 import { useEmit } from 'frontend/sockets/hooks/useEmit';
 import { useSubscribe } from 'frontend/sockets/hooks/useSubscribe';
-import produce from 'immer';
+import { DisplayableItem } from 'frontend/types/DisplayableItem';
+import { Dictionary } from 'lodash';
 import debounce from 'lodash/debounce';
+import find from 'lodash/find';
 import keyBy from 'lodash/keyBy';
+import orderBy from 'lodash/orderBy';
 import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
 import { FunctionComponent, useCallback, useState } from 'react';
@@ -24,43 +27,26 @@ import {
   TOPICS,
 } from 'types/socket';
 
-const debauncedUpdateItemContent = debounce(updateItemContent, 500);
+const debouncedUpdateItemContent = debounce(updateItemContent, 500);
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
 }) => {
-  const [itemDict, setItemDict] = useState(keyBy(rawList.items, 'id'));
+  const [itemDict, setItemDict] = useState<Dictionary<DisplayableItem>>(
+    keyBy(
+      rawList.items.map((item) => ({ ...item, displayId: item.id })),
+      'displayId',
+    ),
+  );
   const [name, setName] = useState(rawList.name);
 
   const emit = useEmit();
 
-  const setItem = useCallback(
-    (itemId: string, item: ItemEntity) => {
-      setItemDict((dict) => ({ ...dict, [itemId]: item }));
+  const setItemByDisplayId = useCallback(
+    (displayId: string, item: DisplayableItem) => {
+      setItemDict((dict) => ({ ...dict, [displayId]: item }));
     },
     [setItemDict],
-  );
-
-  const setItemDone = useCallback(
-    (item: ItemEntity, done: boolean) => {
-      const updatedItem = produce(item, (draft) => {
-        draft.done = done;
-      });
-
-      setItem(item.id, updatedItem);
-    },
-    [setItem],
-  );
-
-  const setItemContent = useCallback(
-    (item: ItemEntity, content: string) => {
-      const updatedItem = produce(item, (draft) => {
-        draft.content = content;
-      });
-
-      setItem(item.id, updatedItem);
-    },
-    [setItem],
   );
 
   useSubscribe<ItemAddedEvent>(
@@ -71,9 +57,9 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
           return;
         }
 
-        setItem(item.id, item);
+        setItemByDisplayId(item.id, { ...item, displayId: item.id });
       },
-      [rawList.id, setItem],
+      [rawList.id, setItemByDisplayId],
     ),
   );
 
@@ -85,15 +71,15 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
           return;
         }
 
-        const item = itemDict[itemId];
+        const item = find(itemDict, { id: itemId });
 
         if (!item) {
           return;
         }
 
-        setItemDone(item, done);
+        setItemByDisplayId(item.displayId, { ...item, done });
       },
-      [itemDict, rawList.id, setItemDone],
+      [itemDict, rawList.id, setItemByDisplayId],
     ),
   );
 
@@ -105,15 +91,15 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
           return;
         }
 
-        const item = itemDict[itemId];
+        const item = find(itemDict, { id: itemId });
 
         if (!item) {
           return;
         }
 
-        setItemContent(item, content);
+        setItemByDisplayId(item.displayId, { ...item, content });
       },
-      [itemDict, rawList.id, setItemContent],
+      [itemDict, rawList.id, setItemByDisplayId],
     ),
   );
 
@@ -131,49 +117,53 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     ),
   );
 
-  const handleItemToggle = (id: string) => async () => {
-    const item = itemDict[id];
+  const handleItemToggle = (displayId: string) => async () => {
+    const item = itemDict[displayId];
+    const itemId = item.id;
 
-    if (!item) {
+    if (!item || !itemId) {
       return;
     }
 
     const isDone = item.done;
 
-    setItemDone(item, !isDone);
+    setItemByDisplayId(displayId, { ...item, done: !isDone });
 
     try {
-      await toggleItem({ listId: rawList.id, itemId: id });
+      await toggleItem({ listId: rawList.id, itemId });
 
       emit<ItemToggledEvent>(TOPICS.ITEM_TOGGLED, {
+        itemId,
         listId: rawList.id,
-        itemId: id,
         done: !isDone,
       });
     } catch (error) {
-      setItemDone(item, isDone);
+      setItemByDisplayId(displayId, { ...item, done: isDone });
       toast.error('Could not update');
     }
   };
 
-  const handleContentUpdate = (id: string) => async (newContent: string) => {
-    const item = itemDict[id];
+  const handleContentUpdate = (displayId: string) => async (
+    newContent: string,
+  ) => {
+    const item = itemDict[displayId];
+    const itemId = item.id;
 
-    if (!item) {
+    if (!item || !itemId) {
       return;
     }
 
-    setItemContent(item, newContent);
+    setItemByDisplayId(displayId, { ...item, content: newContent });
 
     try {
-      await debauncedUpdateItemContent({
+      await debouncedUpdateItemContent({
+        itemId,
         listId: rawList.id,
-        itemId: id,
         content: newContent,
       });
       emit<ItemContentChangedEvent>(TOPICS.ITEM_CONTENT_CHANGED, {
+        itemId,
         listId: rawList.id,
-        itemId: id,
         content: newContent,
       });
     } catch (error) {
@@ -181,11 +171,33 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
-  const handleAddItem = async () => {
+  const handleAddItem = async (
+    params: Partial<Omit<ItemEntity, 'id'>> = {},
+  ) => {
     try {
-      const item = await addItem({ listId: rawList.id, content: '' });
+      const { content = '', done = false } = params;
 
-      setItem(item.id, item);
+      const displayId = [
+        rawList.id,
+        Date.now(),
+        Object.keys(itemDict).length + 1,
+      ].join('-');
+
+      setItemByDisplayId(displayId, {
+        id: null,
+        content,
+        done,
+        displayId,
+        createdAt: null,
+      });
+
+      const item = await addItem({ listId: rawList.id, content, done });
+
+      setItemByDisplayId(displayId, {
+        ...item,
+        displayId,
+      });
+
       emit<ItemAddedEvent>(TOPICS.ITEM_ADDED, {
         listId: rawList.id,
         item: item,
@@ -194,7 +206,6 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       toast.error('Could not create');
     }
   };
-
   const handleNameChange = async (newName: string) => {
     const oldName = name;
 
@@ -220,7 +231,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       name={name}
       createdAt={rawList.createdAt}
       setName={handleNameChange}
-      items={values(itemDict)}
+      items={orderBy(values(itemDict), ['displayId'], ['desc'])}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
       addItem={handleAddItem}

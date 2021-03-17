@@ -1,12 +1,14 @@
 import { ArrowRightSquare } from '@styled-icons/bootstrap';
 import { ListEntity } from 'core/entities/List';
-import { Button } from 'frontend/common/Button';
+import { BaseButton } from 'frontend/common/BaseButton';
 import { Layout } from 'frontend/common/Layout';
 import { H1, H4 } from 'frontend/common/Typography';
+import { usePromise } from 'frontend/hooks/usePromise';
 import { createList } from 'frontend/services/api/createList';
 import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
 import Link from 'next/link';
-import { FunctionComponent, useState } from 'react';
+import { useRouter } from 'next/router';
+import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 import { getDisplayTime } from 'utils/getDisplayTime';
 
@@ -14,10 +16,9 @@ export type Props = {
   lists: ListEntity[];
 };
 
-export const HomeScreen: FunctionComponent<Props> = ({ lists: rawLists }) => {
-  const [lists, setLists] = useState(
-    rawLists.map(({ id, name, createdAt }) => ({ id, name, createdAt })),
-  );
+export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
+  const { push } = useRouter();
+  const [create, { pending }] = usePromise(() => createList());
 
   return (
     <Layout>
@@ -25,10 +26,11 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists: rawLists }) => {
         <H1 as={H4}>All Lists</H1>
         <AddListButton
           onClick={async () => {
-            const list = await createList();
+            const list = await create();
 
-            setLists((lists) => [...lists, list]);
+            push(`/${list.id}`);
           }}
+          disabled={pending}
         >
           +
         </AddListButton>
@@ -57,7 +59,7 @@ const Header = styled.header`
   justify-content: space-between;
 `;
 
-const AddListButton = styled(Button)`
+const AddListButton = styled(BaseButton)`
   border: 2px dashed ${color('addItemButtonColor')};
   color: ${color('addItemButtonColor')};
   height: ${spaceSet(8)};
