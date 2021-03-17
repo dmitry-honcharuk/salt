@@ -15,6 +15,8 @@ export const BaseInput = styled.input`
   }
 
   &[disabled] {
+    -webkit-text-fill-color: ${lighterColor('text', 2)};
     color: ${lighterColor('text', 2)};
+    opacity: 1;
   }
 `;

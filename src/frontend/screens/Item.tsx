@@ -1,7 +1,6 @@
 import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
 import { Save } from '@styled-icons/material/Save';
-import Color from 'color';
 import { BaseInput } from 'frontend/common/BaseInput';
 import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
 import { FunctionComponent, useEffect, useRef } from 'react';
@@ -36,7 +35,6 @@ export const Item: FunctionComponent<Props> = ({
   return (
     <Root>
       <Icon as={icon} onClick={onToggle} done={done} pending={pending} />
-
       <Input
         done={done}
         value={content}
@@ -58,12 +56,12 @@ const Root = styled.div`
 `;
 
 const blink = (color: string) => keyframes`
- from {
-    color: ${color};
+ 0% {
+    fill: ${color};
   }
 
-  to {
-    border-right: transparent;
+  100% {
+    fill: transparent;
   }
 `;
 
@@ -76,18 +74,12 @@ export const IconBase = styled.svg`
 const Icon = styled(IconBase)<{ done: boolean; pending: boolean }>`
   height: ${spaceSet(6)};
   margin-right: ${spaceSet(2)};
-  color: ${({ done, pending, theme }) => {
-    if (pending) {
-      return 'transparent';
-    }
-
-    return done
-      ? Color(color('main')({ theme })).lighten(0.1).string()
-      : color('main')({ theme });
-  }};
+  fill: ${color('main')};
 
   animation: ${({ theme }) => blink(color('main')({ theme }))} 800ms linear
-    alternate infinite;
+    alternate;
+
+  animation-iteration-count: ${({ pending }) => (pending ? 'infinite' : 0)};
 `;
 
 export const Input = styled(BaseInput)<{ done?: boolean }>`
