@@ -1,6 +1,6 @@
 import { ArrowRightSquare } from '@styled-icons/bootstrap';
 import { ListEntity } from 'core/entities/List';
-import { Button } from 'frontend/common/Button';
+import { BaseButton } from 'frontend/common/BaseButton';
 import { Layout } from 'frontend/common/Layout';
 import { H1, H4 } from 'frontend/common/Typography';
 import { usePromise } from 'frontend/hooks/usePromise';
@@ -59,7 +59,7 @@ const Header = styled.header`
   justify-content: space-between;
 `;
 
-const AddListButton = styled(Button)`
+const AddListButton = styled(BaseButton)`
   border: 2px dashed ${color('addItemButtonColor')};
   color: ${color('addItemButtonColor')};
   height: ${spaceSet(8)};

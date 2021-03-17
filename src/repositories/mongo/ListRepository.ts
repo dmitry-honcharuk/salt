@@ -37,7 +37,7 @@ export function buildMongoListRepository(): ListRepository {
         .map(({ _id, ...list }) => ({ ...list, id: _id.toHexString() }))
         .toArray();
     },
-    addItem: async ({ listId, content, done }) => {
+    addItem: async ({ listId, content, done, createdAt }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
@@ -55,6 +55,7 @@ export function buildMongoListRepository(): ListRepository {
         id: genereteItemId(list),
         content,
         done,
+        createdAt,
       };
 
       const { modifiedCount } = await listCollection.updateOne(filter, {

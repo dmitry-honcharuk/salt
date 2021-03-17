@@ -4,11 +4,7 @@ import { ListEntity } from 'core/entities/List';
 export interface ListRepository {
   createList(options: { name: string; createdAt: number }): Promise<ListEntity>;
   getLists(): Promise<ListEntity[]>;
-  addItem(options: {
-    listId: string;
-    content: string;
-    done: boolean;
-  }): Promise<ItemEntity | null>;
+  addItem(options: AddItem): Promise<ItemEntity | null>;
   getListById(id: string): Promise<ListEntity | null>;
   updateItem(
     options: { listId: string; itemId: string },
@@ -18,4 +14,8 @@ export interface ListRepository {
     listId: string;
     name: string;
   }): Promise<null | ListEntity>;
+}
+
+type AddItem = Omit<ItemEntity, 'id'> & {
+  listId: string;
 }

@@ -1,4 +1,4 @@
-import { Button } from 'frontend/common/Button';
+import { BaseButton } from 'frontend/common/BaseButton';
 import { H5 } from 'frontend/common/Typography';
 import { usePromise } from 'frontend/hooks/usePromise';
 import { createList } from 'frontend/services/api/createList';
@@ -54,6 +54,6 @@ const Title = styled(H5)`
   text-align: center;
 `;
 
-const CreateButton = styled(Button)`
+const CreateButton = styled(BaseButton)`
   border-style: dashed;
 `;

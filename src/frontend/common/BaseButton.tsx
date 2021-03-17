@@ -1,7 +1,7 @@
 import { color, lighterColor, space } from 'frontend/theme-selectors';
 import styled from 'styled-components';
 
-export const Button = styled.button`
+export const BaseButton = styled.button`
   background-color: transparent;
   border: 3px solid ${color('main')};
   padding: ${space(2)}px;

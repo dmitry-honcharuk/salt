@@ -9,7 +9,7 @@ export default createRoute().post(createItem);
 async function createItem(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery },
-    body: { content },
+    body: { content, done },
   } = req;
 
   const listId = normalizeQueryParam(listIdQuery);
@@ -19,6 +19,7 @@ async function createItem(req: NextApiRequest, res: NextApiResponse) {
   const item = await addItem({
     listId,
     content,
+    done,
   });
 
   res.json(item);

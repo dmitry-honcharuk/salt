@@ -3,7 +3,12 @@ import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 
 export function buildAddItem({ listRepository: listRepo }: Deps) {
-  return async ({ listId, content }: Input): Promise<ItemEntity> => {
+  return async ({
+    listId,
+    content,
+    done = false,
+    createdAt = Date.now(),
+  }: Input): Promise<ItemEntity> => {
     if (!listId) {
       throw new CoreError('List id is required');
     }
@@ -11,7 +16,8 @@ export function buildAddItem({ listRepository: listRepo }: Deps) {
     const item = await listRepo.addItem({
       listId,
       content: content ?? '',
-      done: false,
+      done,
+      createdAt,
     });
 
     if (!item) {
@@ -28,4 +34,6 @@ type Deps = {
 type Input = {
   listId?: string;
   content?: string;
+  done?: boolean;
+  createdAt?: number;
 };
