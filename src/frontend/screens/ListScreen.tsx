@@ -108,7 +108,6 @@ const NameInput = styled.input`
   padding: ${spaceSet(1, 2)};
   font-size: 1.5rem;
   text-align: right;
-  transition: border-color 100ms;
 
   :focus {
     outline: none;
