@@ -4,14 +4,15 @@ import { buildGetListById } from 'core/use-cases/getListById';
 import { listRepository } from 'dependencies';
 import { ListScreen } from 'frontend/screens/ListScreen';
 import { addItem } from 'frontend/services/api/addItem';
+import { removeItem } from 'frontend/services/api/removeItem';
 import { toggleItem } from 'frontend/services/api/toggleItem';
 import { updateItemContent } from 'frontend/services/api/updateItemContent';
 import { updateListName } from 'frontend/services/api/updateListName';
 import { useEmit } from 'frontend/sockets/hooks/useEmit';
 import { useSubscribe } from 'frontend/sockets/hooks/useSubscribe';
 import { DisplayableItem } from 'frontend/types/DisplayableItem';
+import produce from 'immer';
 import { Dictionary } from 'lodash';
-import debounce from 'lodash/debounce';
 import find from 'lodash/find';
 import keyBy from 'lodash/keyBy';
 import orderBy from 'lodash/orderBy';
@@ -22,12 +23,11 @@ import { toast } from 'react-toastify';
 import {
   ItemAddedEvent,
   ItemContentChangedEvent,
+  ItemRemovedEvent,
   ItemToggledEvent,
   ListNameChangedEvent,
   TOPICS,
 } from 'types/socket';
-
-const debouncedUpdateItemContent = debounce(updateItemContent, 500);
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
@@ -45,6 +45,19 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   const setItemByDisplayId = useCallback(
     (displayId: string, item: DisplayableItem) => {
       setItemDict((dict) => ({ ...dict, [displayId]: item }));
+    },
+    [setItemDict],
+  );
+
+  const deleteItemByDisplayId = useCallback(
+    (displayId: string) => {
+      setItemDict((dict) => {
+        return produce(dict, (draft) => {
+          delete draft[displayId];
+
+          return draft;
+        });
+      });
     },
     [setItemDict],
   );
@@ -117,6 +130,26 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     ),
   );
 
+  useSubscribe<ItemRemovedEvent>(
+    TOPICS.ITEM_REMOVED,
+    useCallback(
+      ({ listId, itemId }) => {
+        if (listId !== rawList.id) {
+          return;
+        }
+
+        const item = find(itemDict, { id: itemId });
+
+        if (!item) {
+          return;
+        }
+
+        deleteItemByDisplayId(item.displayId);
+      },
+      [deleteItemByDisplayId, itemDict, rawList.id],
+    ),
+  );
+
   const handleItemToggle = (displayId: string) => async () => {
     const item = itemDict[displayId];
     const itemId = item.id;
@@ -156,7 +189,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     setItemByDisplayId(displayId, { ...item, content: newContent });
 
     try {
-      await debouncedUpdateItemContent({
+      await updateItemContent({
         itemId,
         listId: rawList.id,
         content: newContent,
@@ -226,6 +259,30 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
+  const handleRemoveItem = (displayId: string) => async () => {
+    const item = itemDict[displayId];
+    const itemId = item.id;
+
+    if (!item || !itemId) {
+      return;
+    }
+
+    deleteItemByDisplayId(displayId);
+
+    try {
+      await removeItem({
+        listId: rawList.id,
+        itemId,
+      });
+      emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
+        listId: rawList.id,
+        itemId,
+      });
+    } catch (e) {
+      setItemByDisplayId(displayId, { ...item });
+    }
+  };
+
   return (
     <ListScreen
       name={name}
@@ -235,6 +292,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
       addItem={handleAddItem}
+      removeItem={handleRemoveItem}
     />
   );
 };

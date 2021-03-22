@@ -5,11 +5,12 @@ export const TOPICS = {
   ITEM_TOGGLED: 'ITEM_TOGGLED',
   ITEM_CONTENT_CHANGED: 'ITEM_CONTENT_CHANGED',
   LIST_NAME_CHANGED: 'LIST_NAME_CHANGED',
+  ITEM_REMOVED: 'ITEM_REMOVED',
 } as const;
 
 export type Event = {
   topic: keyof typeof TOPICS;
-  payload: {};
+  payload: unknown;
 };
 
 export interface ItemAddedEvent extends Event {
@@ -43,5 +44,13 @@ export interface ListNameChangedEvent extends Event {
   payload: {
     listId: string;
     name: string;
+  };
+}
+
+export interface ItemRemovedEvent extends Event {
+  topic: typeof TOPICS.ITEM_REMOVED;
+  payload: {
+    listId: string;
+    itemId: string;
   };
 }
