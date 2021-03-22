@@ -11,6 +11,7 @@ type Props = {
   done: boolean;
   onToggle: () => void;
   onItemChange: (content: string) => void;
+  onRemove: () => void;
   focused?: boolean;
   pending?: boolean;
 };
@@ -19,6 +20,7 @@ export const Item: FunctionComponent<Props> = ({
   done,
   onToggle,
   onItemChange,
+  onRemove,
   focused = false,
   pending = false,
 }) => {
@@ -31,6 +33,7 @@ export const Item: FunctionComponent<Props> = ({
   }, [focused]);
 
   const icon = pending ? Save : done ? CheckBoxIcon : CheckBoxOutlineBlankIcon;
+  const lastContentRef = useRef<string | null>(null);
 
   return (
     <Root>
@@ -39,6 +42,18 @@ export const Item: FunctionComponent<Props> = ({
         done={done}
         value={content}
         disabled={pending}
+        onKeyDown={() => {
+          lastContentRef.current = content;
+        }}
+        onKeyUp={({ key }) => {
+          if (
+            key === 'Backspace' &&
+            content === lastContentRef.current &&
+            content === ''
+          ) {
+            onRemove();
+          }
+        }}
         onChange={(event) => {
           onItemChange(event.target.value);
         }}

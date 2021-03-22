@@ -84,3 +84,20 @@ export async function patch<R = any, B extends Record<string, unknown> = any>(
 
   return data;
 }
+
+export async function del<T = any>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw {
+      message: response.status < 500 ? data.message : 'Something went wrong',
+      status: response.status,
+    };
+  }
+
+  return data;
+}

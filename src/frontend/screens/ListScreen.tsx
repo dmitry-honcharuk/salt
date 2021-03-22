@@ -14,6 +14,7 @@ type Props = {
   items: DisplayableItem[];
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
+  removeItem: (id: string) => () => void;
   addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
@@ -24,6 +25,7 @@ export const ListScreen: FunctionComponent<Props> = ({
   items,
   toggleItem,
   updateContent,
+  removeItem,
   addItem,
   setName,
   name,
@@ -55,6 +57,7 @@ export const ListScreen: FunctionComponent<Props> = ({
               done={done}
               onToggle={toggleItem(displayId)}
               onItemChange={updateContent(displayId)}
+              onRemove={removeItem(displayId)}
             />
           </ListItem>
         ))}

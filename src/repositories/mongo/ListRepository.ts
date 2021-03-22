@@ -138,6 +138,26 @@ export function buildMongoListRepository(): ListRepository {
 
       return { id: _id.toHexString(), ...list, name };
     },
+    removeItem: async ({ listId, itemId }) => {
+      const db = await getDatabase();
+
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const filter = {
+        _id: new ObjectId(listId),
+      };
+
+      const list = await listCollection.findOne(filter);
+
+      if (!list) {
+        return;
+      }
+
+      await listCollection.updateOne(filter, {
+        $set: {
+          items: list.items.filter((item) => item.id !== itemId),
+        },
+      });
+    },
   };
 }
 
