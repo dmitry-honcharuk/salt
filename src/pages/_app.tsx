@@ -1,6 +1,6 @@
 import { SocketContext } from 'frontend/sockets/context';
 import { theme } from 'frontend/theme';
-import { color } from 'frontend/theme-selectors';
+import { getColor } from 'frontend/theme-selectors';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { io } from 'socket.io-client';
@@ -32,7 +32,7 @@ const GlobalStyle = createGlobalStyle`
   }
   body {
     font-family: 'Roboto', sans-serif;
-    color: ${color('text')};
+    color: ${getColor('text')};
   }
 `;
 

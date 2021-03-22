@@ -1,10 +1,17 @@
 import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
+import { DeleteForever as DeleteIconBase } from '@styled-icons/material/DeleteForever';
 import { ItemEntity } from 'core/entities/Item';
+import { BaseButton } from 'frontend/common/BaseButton';
 import { Layout } from 'frontend/common/Layout';
-import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
+import {
+  getColor,
+  getLighterColor,
+  getSpacePx,
+  getSpaceSet,
+} from 'frontend/theme-selectors';
 import { DisplayableItem } from 'frontend/types/DisplayableItem';
 import Link from 'next/link';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { getDisplayTime } from 'utils/getDisplayTime';
 import { Item } from './Item';
@@ -15,6 +22,7 @@ type Props = {
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   removeItem: (id: string) => () => void;
+  removeList: () => Promise<void>;
   addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
@@ -26,17 +34,20 @@ export const ListScreen: FunctionComponent<Props> = ({
   toggleItem,
   updateContent,
   removeItem,
+  removeList,
   addItem,
   setName,
   name,
   createdAt,
 }) => {
+  const [isDeleting, setDeleting] = useState(false);
+
   return (
     <Layout>
       <Header>
         <Link href='/'>
           <BackLink href='/'>
-            <Arrow90degLeft height={20} />
+            <Arrow90degLeft height={24} />
           </BackLink>
         </Link>
         <NameWrapper>
@@ -46,6 +57,16 @@ export const ListScreen: FunctionComponent<Props> = ({
             onChange={({ target }) => setName(target.value)}
           />
         </NameWrapper>
+        <DeleteButton
+          disabled={isDeleting}
+          color='secondary'
+          onClick={async () => {
+            setDeleting(true);
+            await removeList();
+          }}
+        >
+          <DeleteIcon />
+        </DeleteButton>
       </Header>
       <NewItemRow onCreate={addItem} />
       <Ul>
@@ -67,12 +88,12 @@ export const ListScreen: FunctionComponent<Props> = ({
 };
 
 const Ul = styled.ul`
-  margin: ${spaceSet(4, 0)};
+  margin: ${getSpaceSet(4, 0)};
   font-size: 20px;
 `;
 
 const ListItem = styled.li`
-  border-top: 1px dashed ${color('listItemBorder')};
+  border-top: 1px dashed ${getColor('listItemBorder')};
 
   :first-child {
     border-top: none;
@@ -80,21 +101,21 @@ const ListItem = styled.li`
 `;
 
 const Header = styled.header`
-  padding: ${spaceSet(2, 1)};
-  border-bottom: 1px dotted ${color('listItemBorder')};
-  margin-bottom: ${spaceSet(5)};
+  padding: ${getSpaceSet(2, 1)};
+  border-bottom: 1px dotted ${getColor('listItemBorder')};
+  margin-bottom: ${getSpaceSet(5)};
   display: flex;
   justify-content: space-between;
 `;
 
 const BackLink = styled.a`
-  border: 2px dashed ${lighterColor('text', 2)};
-  color: ${lighterColor('text', 2)};
+  border: 2px dashed ${getLighterColor('text', 2)};
+  color: ${getLighterColor('text', 2)};
   display: flex;
   align-items: center;
   justify-content: center;
-  height: ${spaceSet(8)};
-  width: ${spaceSet(8)};
+  height: ${getSpaceSet(9)};
+  width: ${getSpaceSet(9)};
   cursor: pointer;
 `;
 
@@ -104,15 +125,27 @@ const NameWrapper = styled.div`
 `;
 
 const NameInput = styled.input`
-  color: ${lighterColor('text', 1)};
+  color: ${getLighterColor('text', 1)};
   border: none;
-  border-bottom: 1px dashed ${color('nameFieldBorder')};
+  border-bottom: 1px dashed ${getColor('nameFieldBorder')};
   border-radius: 0;
-  padding: ${spaceSet(1, 2)};
+  padding: ${getSpaceSet(1, 2)};
   font-size: 1.5rem;
   text-align: right;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+  text-align: center;
 
   :focus {
     outline: none;
   }
+`;
+
+const DeleteButton = styled(BaseButton)`
+  padding: ${getSpacePx()};
+`;
+
+const DeleteIcon = styled(DeleteIconBase)`
+  height: ${getSpacePx(6)};
+  color: inherit;
 `;

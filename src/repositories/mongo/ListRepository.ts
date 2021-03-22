@@ -158,6 +158,13 @@ export function buildMongoListRepository(): ListRepository {
         },
       });
     },
+    removeList: async (listId: string) => {
+      const db = await getDatabase();
+
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+
+      await listCollection.deleteOne({ _id: new ObjectId(listId) });
+    },
   };
 }
 

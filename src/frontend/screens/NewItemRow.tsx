@@ -1,6 +1,6 @@
 import { ItemEntity } from 'core/entities/Item';
 import { BaseInput } from 'frontend/common/BaseInput';
-import { color } from 'frontend/theme-selectors';
+import { getColor } from 'frontend/theme-selectors';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 
@@ -50,5 +50,5 @@ export const NewItemRow: FunctionComponent<Props> = ({ onCreate }) => {
 
 const Input = styled(BaseInput)`
   width: 100%;
-  border-bottom: 2px dashed ${color('main')};
+  border-bottom: 2px dashed ${getColor('main')};
 `;

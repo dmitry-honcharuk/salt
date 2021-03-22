@@ -2,7 +2,7 @@ import { BaseButton } from 'frontend/common/BaseButton';
 import { H5 } from 'frontend/common/Typography';
 import { usePromise } from 'frontend/hooks/usePromise';
 import { createList } from 'frontend/services/api/createList';
-import { space } from 'frontend/theme-selectors';
+import { getSpace } from 'frontend/theme-selectors';
 import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
 import styled from 'styled-components';
@@ -50,7 +50,7 @@ const Content = styled(Centered)`
 `;
 
 const Title = styled(H5)`
-  margin-bottom: ${space(3)}px;
+  margin-bottom: ${getSpace(3)}px;
   text-align: center;
 `;
 
