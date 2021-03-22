@@ -1,4 +1,4 @@
-import { spaceSet } from 'frontend/theme-selectors';
+import { getSpaceSet } from 'frontend/theme-selectors';
 import { FunctionComponent } from 'react';
 import { Slide, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,5 +25,5 @@ export const Layout: FunctionComponent = ({ children }) => {
 };
 
 const Root = styled.div`
-  padding: ${spaceSet(2)};
+  padding: ${getSpaceSet(2)};
 `;

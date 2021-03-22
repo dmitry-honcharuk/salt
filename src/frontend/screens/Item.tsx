@@ -2,7 +2,11 @@ import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
 import { Save } from '@styled-icons/material/Save';
 import { BaseInput } from 'frontend/common/BaseInput';
-import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
+import {
+  getColor,
+  getLighterColor,
+  getSpaceSet,
+} from 'frontend/theme-selectors';
 import { FunctionComponent, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 
@@ -66,7 +70,7 @@ export const Item: FunctionComponent<Props> = ({
 const Root = styled.div`
   display: flex;
   align-items: center;
-  padding: ${spaceSet(2, 1)};
+  padding: ${getSpaceSet(2, 1)};
   font-size: 20px;
 `;
 
@@ -81,17 +85,17 @@ const blink = (color: string) => keyframes`
 `;
 
 export const IconBase = styled.svg`
-  height: ${spaceSet(6)};
-  margin-right: ${spaceSet(2)};
-  color: ${color('main')};
+  height: ${getSpaceSet(6)};
+  margin-right: ${getSpaceSet(2)};
+  color: ${getColor('main')};
 `;
 
 const Icon = styled(IconBase)<{ done: boolean; pending: boolean }>`
-  height: ${spaceSet(6)};
-  margin-right: ${spaceSet(2)};
-  fill: ${color('main')};
+  height: ${getSpaceSet(6)};
+  margin-right: ${getSpaceSet(2)};
+  fill: ${getColor('main')};
 
-  animation: ${({ theme }) => blink(color('main')({ theme }))} 800ms linear
+  animation: ${({ theme }) => blink(getColor('main')({ theme }))} 800ms linear
     alternate;
 
   animation-iteration-count: ${({ pending }) => (pending ? 'infinite' : 0)};
@@ -101,5 +105,5 @@ export const Input = styled(BaseInput)<{ done?: boolean }>`
   flex-grow: 1;
 
   color: ${({ done, theme }) =>
-    done ? lighterColor('text', 2)({ theme }) : color('text')({ theme })};
+    done ? getLighterColor('text', 2)({ theme }) : getColor('text')({ theme })};
 `;

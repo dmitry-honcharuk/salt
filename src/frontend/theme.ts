@@ -5,7 +5,7 @@ const MAIN_COLOR = '#abf1d1';
 export const theme = {
   colors: {
     main: MAIN_COLOR,
-    secondary: '#f4d6cc',
+    secondary: '#e58869',
     text: '#3b3b3b',
     nameFieldBorder: '#4b4a4aeb',
     listItemBorder: '#e0e0e0',

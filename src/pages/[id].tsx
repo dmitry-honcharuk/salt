@@ -5,6 +5,7 @@ import { listRepository } from 'dependencies';
 import { ListScreen } from 'frontend/screens/ListScreen';
 import { addItem } from 'frontend/services/api/addItem';
 import { removeItem } from 'frontend/services/api/removeItem';
+import { removeList } from 'frontend/services/api/removeList';
 import { toggleItem } from 'frontend/services/api/toggleItem';
 import { updateItemContent } from 'frontend/services/api/updateItemContent';
 import { updateListName } from 'frontend/services/api/updateListName';
@@ -18,6 +19,7 @@ import keyBy from 'lodash/keyBy';
 import orderBy from 'lodash/orderBy';
 import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import { FunctionComponent, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
 import {
@@ -41,6 +43,8 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   const [name, setName] = useState(rawList.name);
 
   const emit = useEmit();
+
+  const { push } = useRouter();
 
   const setItemByDisplayId = useCallback(
     (displayId: string, item: DisplayableItem) => {
@@ -283,6 +287,11 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
+  const handleRemoveList = async () => {
+    await removeList({ listId: rawList.id });
+    push('/');
+  };
+
   return (
     <ListScreen
       name={name}
@@ -293,6 +302,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       updateContent={handleContentUpdate}
       addItem={handleAddItem}
       removeItem={handleRemoveItem}
+      removeList={handleRemoveList}
     />
   );
 };

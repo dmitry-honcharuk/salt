@@ -5,7 +5,11 @@ import { Layout } from 'frontend/common/Layout';
 import { H1, H4 } from 'frontend/common/Typography';
 import { usePromise } from 'frontend/hooks/usePromise';
 import { createList } from 'frontend/services/api/createList';
-import { color, lighterColor, spaceSet } from 'frontend/theme-selectors';
+import {
+  getColor,
+  getLighterColor,
+  getSpaceSet,
+} from 'frontend/theme-selectors';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
@@ -52,52 +56,54 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
 };
 
 const Header = styled.header`
-  padding: ${spaceSet(2, 1)};
-  border-bottom: 1px dotted ${color('listItemBorder')};
-  margin-bottom: ${spaceSet(5)};
+  padding: ${getSpaceSet(2, 1)};
+  border-bottom: 1px dotted ${getColor('listItemBorder')};
+  margin-bottom: ${getSpaceSet(5)};
   display: flex;
   justify-content: space-between;
 `;
 
 const AddListButton = styled(BaseButton)`
-  border: 2px dashed ${color('addItemButtonColor')};
-  color: ${color('addItemButtonColor')};
-  height: ${spaceSet(8)};
-  width: ${spaceSet(30)};
+  border: 2px dashed ${getColor('addItemButtonColor')};
+  color: ${getColor('addItemButtonColor')};
+  height: ${getSpaceSet(8)};
+  width: ${getSpaceSet(30)};
   font-weight: bold;
   font-size: 25px;
   padding: 0;
 `;
 
 const Ul = styled.ul`
-  margin: ${spaceSet(4, 0)};
+  margin: ${getSpaceSet(4, 0)};
   font-size: 20px;
 `;
 
 const ListItem = styled.li`
-  border: 1px dashed ${color('listItemBorder')};
+  border: 1px dashed ${getColor('listItemBorder')};
 
-  margin: ${spaceSet(5, 0)};
+  margin: ${getSpaceSet(5, 0)};
 `;
 
 const ListLink = styled.a<{ pale?: boolean }>`
   color: ${({ pale, theme }) =>
-    pale ? lighterColor('text', 0.8)({ theme }) : color('text')({ theme })};
+    pale
+      ? getLighterColor('text', 0.8)({ theme })
+      : getColor('text')({ theme })};
   text-decoration: none;
   display: flex;
 
-  padding: ${spaceSet(4, 4)};
+  padding: ${getSpaceSet(4, 4)};
 `;
 
 const ListLabel = styled.span`
-  padding-right: ${spaceSet(3)};
+  padding-right: ${getSpaceSet(3)};
   display: flex;
   align-items: center;
   flex-grow: 1;
 `;
 
 const ArrowIcon = styled(ArrowRightSquare)`
-  color: ${lighterColor('text', 1)};
+  color: ${getLighterColor('text', 1)};
   min-width: 30px;
   height: 30px;
 `;
