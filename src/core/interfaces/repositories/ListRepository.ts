@@ -15,6 +15,7 @@ export interface ListRepository {
     name: string;
   }): Promise<null | ListEntity>;
   removeItem(options: { listId: string; itemId: string }): Promise<void>;
+  removeList(listId: string): Promise<void>;
 }
 
 type AddItem = Omit<ItemEntity, 'id'> & {
