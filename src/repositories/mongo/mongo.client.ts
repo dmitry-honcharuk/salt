@@ -1,23 +1,34 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { Db, MongoClient } from 'mongodb';
 import { CONNECTION_URL } from './connectionUrl';
 
-let cachedConnection: Db | null = null;
+/**
+ * Global is used here to maintain a cached connection across hot reloads
+ * in development. This prevents connections growing exponentially
+ * during API Route usage.
+ */
+// @ts-ignore
+let cached = global.mongo;
 
-export async function getDatabase() {
-  if (cachedConnection) {
-    return cachedConnection;
+if (!cached) {
+  // @ts-ignore
+  cached = global.mongo = { db: null, promise: null };
+}
+
+export async function getDatabase(): Promise<Db> {
+  if (cached.db) {
+    return cached.db;
   }
 
-  const client = new MongoClient(CONNECTION_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  if (!cached.promise) {
+    cached.promise = MongoClient.connect(CONNECTION_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }).then((client) => client.db(process.env.DB_NAME));
+  }
 
-  await client.connect();
+  cached.db = await cached.promise;
 
-  const database = client.db(process.env.DB_NAME);
-
-  cachedConnection = database;
-
-  return database;
+  return cached.db;
 }
