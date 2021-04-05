@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { Db, MongoClient } from 'mongodb';
+import { DB_NAME } from '../../config/env';
 import { CONNECTION_URL } from './connectionUrl';
 
 /**
@@ -25,7 +26,7 @@ export async function getDatabase(): Promise<Db> {
     cached.promise = MongoClient.connect(CONNECTION_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    }).then((client) => client.db(process.env.DB_NAME));
+    }).then((client) => client.db(DB_NAME));
   }
 
   cached.db = await cached.promise;

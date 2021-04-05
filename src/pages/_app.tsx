@@ -5,13 +5,12 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { io } from 'socket.io-client';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import { NEXT_PUBLIC_SOCKET_URL } from '../config/env';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <SocketContext.Provider
-      value={{ socket: io(process.env.NEXT_PUBLIC_SOCKET_URL as string) }}
-    >
+    <SocketContext.Provider value={{ socket: io(NEXT_PUBLIC_SOCKET_URL) }}>
       <Head>
         <title>Salt</title>
       </Head>
