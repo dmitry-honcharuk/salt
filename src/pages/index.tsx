@@ -1,8 +1,8 @@
+import { listRepository } from 'app/dependencies';
+import { HomeScreen, Props } from 'app/frontend/screens/HomeScreen';
+import { WelcomeScreen } from 'app/frontend/screens/WelcomeScreen';
 import { ListEntity } from 'core/entities/List';
 import { buildGetLists } from 'core/use-cases/getLists';
-import { listRepository } from 'dependencies';
-import { HomeScreen, Props } from 'frontend/screens/HomeScreen';
-import { WelcomeScreen } from 'frontend/screens/WelcomeScreen';
 import { GetServerSideProps } from 'next';
 import { FunctionComponent } from 'react';
 

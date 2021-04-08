@@ -1,8 +1,8 @@
+import { listRepository } from 'app/dependencies';
+import { createRoute } from 'app/utils/api/route';
 import { buildCreateList } from 'core/use-cases/createList';
 import { buildGetLists } from 'core/use-cases/getLists';
-import { listRepository } from 'dependencies';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createRoute } from 'utils/api/route';
 
 export default createRoute().get(getAllLists).post(createList);
 

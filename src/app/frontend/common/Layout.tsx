@@ -1,4 +1,4 @@
-import { getSpaceSet } from 'frontend/theme-selectors';
+import { getSpaceSet } from 'app/frontend/theme-selectors';
 import { FunctionComponent } from 'react';
 import { Slide, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

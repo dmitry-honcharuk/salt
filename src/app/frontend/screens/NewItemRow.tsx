@@ -1,6 +1,6 @@
+import { BaseInput } from 'app/frontend/common/BaseInput';
+import { getColor } from 'app/frontend/theme-selectors';
 import { ItemEntity } from 'core/entities/Item';
-import { BaseInput } from 'frontend/common/BaseInput';
-import { getColor } from 'frontend/theme-selectors';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 

@@ -1,5 +1,5 @@
+import { Event } from 'app/types/socket';
 import { useEffect } from 'react';
-import { Event } from 'types/socket';
 import { useSocket } from './useSocket';
 
 export function useSubscribe<Ev extends Event = never>(

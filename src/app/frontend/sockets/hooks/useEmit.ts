@@ -1,4 +1,4 @@
-import { Event } from 'types/socket';
+import { Event } from 'app/types/socket';
 import { useSocket } from './useSocket';
 
 type Emit = <Ev extends Event = never>(

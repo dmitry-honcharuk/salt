@@ -1,8 +1,8 @@
+import { listRepository } from 'app/dependencies';
+import { createRoute } from 'app/utils/api/route';
+import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
 import { buildAddItem } from 'core/use-cases/addItem';
-import { listRepository } from 'dependencies';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createRoute } from 'utils/api/route';
-import { normalizeQueryParam } from 'utils/normalizeQueryParam';
 
 export default createRoute().post(createItem);
 

@@ -1,12 +1,12 @@
 import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
 import { Save } from '@styled-icons/material/Save';
-import { BaseInput } from 'frontend/common/BaseInput';
+import { BaseInput } from 'app/frontend/common/BaseInput';
 import {
   getColor,
   getLighterColor,
   getSpaceSet,
-} from 'frontend/theme-selectors';
+} from 'app/frontend/theme-selectors';
 import { FunctionComponent, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 

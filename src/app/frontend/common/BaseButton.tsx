@@ -2,7 +2,7 @@ import {
   getColor,
   getLighterColor,
   getSpacePx,
-} from 'frontend/theme-selectors';
+} from 'app/frontend/theme-selectors';
 import styled from 'styled-components';
 
 const COLOR = {

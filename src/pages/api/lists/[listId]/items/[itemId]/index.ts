@@ -1,9 +1,9 @@
+import { listRepository } from 'app/dependencies';
+import { createRoute } from 'app/utils/api/route';
+import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
 import { buildRemoveItem } from 'core/use-cases/removeItem';
 import { buildUpdateItemContent } from 'core/use-cases/updateItemContent';
-import { listRepository } from 'dependencies';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createRoute } from 'utils/api/route';
-import { normalizeQueryParam } from 'utils/normalizeQueryParam';
 
 export default createRoute().put(updateContent).delete(removeItem);
 

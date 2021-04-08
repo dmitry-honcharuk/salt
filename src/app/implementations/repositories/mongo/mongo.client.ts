@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { Db, MongoClient } from 'mongodb';
-import { DB_NAME } from '../../config/env';
+import { DB_NAME } from '../../../config/env';
 import { CONNECTION_URL } from './connectionUrl';
 
 /**

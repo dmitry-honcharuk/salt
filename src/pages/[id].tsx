@@ -1,17 +1,25 @@
+import { listRepository } from 'app/dependencies';
+import { ListScreen } from 'app/frontend/screens/ListScreen';
+import { addItem } from 'app/frontend/services/api/addItem';
+import { removeItem } from 'app/frontend/services/api/removeItem';
+import { removeList } from 'app/frontend/services/api/removeList';
+import { toggleItem } from 'app/frontend/services/api/toggleItem';
+import { updateItemContent } from 'app/frontend/services/api/updateItemContent';
+import { updateListName } from 'app/frontend/services/api/updateListName';
+import { useEmit } from 'app/frontend/sockets/hooks/useEmit';
+import { useSubscribe } from 'app/frontend/sockets/hooks/useSubscribe';
+import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
+import {
+  ItemAddedEvent,
+  ItemContentChangedEvent,
+  ItemRemovedEvent,
+  ItemToggledEvent,
+  ListNameChangedEvent,
+  TOPICS,
+} from 'app/types/socket';
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
 import { buildGetListById } from 'core/use-cases/getListById';
-import { listRepository } from 'dependencies';
-import { ListScreen } from 'frontend/screens/ListScreen';
-import { addItem } from 'frontend/services/api/addItem';
-import { removeItem } from 'frontend/services/api/removeItem';
-import { removeList } from 'frontend/services/api/removeList';
-import { toggleItem } from 'frontend/services/api/toggleItem';
-import { updateItemContent } from 'frontend/services/api/updateItemContent';
-import { updateListName } from 'frontend/services/api/updateListName';
-import { useEmit } from 'frontend/sockets/hooks/useEmit';
-import { useSubscribe } from 'frontend/sockets/hooks/useSubscribe';
-import { DisplayableItem } from 'frontend/types/DisplayableItem';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
 import find from 'lodash/find';
@@ -22,14 +30,6 @@ import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { FunctionComponent, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
-import {
-  ItemAddedEvent,
-  ItemContentChangedEvent,
-  ItemRemovedEvent,
-  ItemToggledEvent,
-  ListNameChangedEvent,
-  TOPICS,
-} from 'types/socket';
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,

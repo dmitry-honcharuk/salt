@@ -1,20 +1,20 @@
 import { ArrowRightSquare } from '@styled-icons/bootstrap';
-import { ListEntity } from 'core/entities/List';
-import { BaseButton } from 'frontend/common/BaseButton';
-import { Layout } from 'frontend/common/Layout';
-import { H1, H4 } from 'frontend/common/Typography';
-import { usePromise } from 'frontend/hooks/usePromise';
-import { createList } from 'frontend/services/api/createList';
+import { BaseButton } from 'app/frontend/common/BaseButton';
+import { Layout } from 'app/frontend/common/Layout';
+import { H1, H4 } from 'app/frontend/common/Typography';
+import { usePromise } from 'app/frontend/hooks/usePromise';
+import { createList } from 'app/frontend/services/api/createList';
 import {
   getColor,
   getLighterColor,
   getSpaceSet,
-} from 'frontend/theme-selectors';
+} from 'app/frontend/theme-selectors';
+import { getDisplayTime } from 'app/utils/getDisplayTime';
+import { ListEntity } from 'core/entities/List';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
 import styled from 'styled-components';
-import { getDisplayTime } from 'utils/getDisplayTime';
 
 export type Props = {
   lists: ListEntity[];
