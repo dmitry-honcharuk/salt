@@ -1,5 +1,5 @@
+import { patch } from 'app/implementations/services/request-client';
 import { ListEntity } from 'core/entities/List';
-import { patch } from './client';
 
 export const updateListName = (options: {
   listId: string;

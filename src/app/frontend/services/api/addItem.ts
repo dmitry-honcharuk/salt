@@ -1,5 +1,5 @@
+import { post } from 'app/implementations/services/request-client';
 import { ItemEntity } from 'core/entities/Item';
-import { post } from './client';
 
 export const addItem = (options: {
   listId: string;

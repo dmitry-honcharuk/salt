@@ -6,5 +6,3 @@ export const NEXT_PUBLIC_SOCKET_URL = process.env
 export const AUTH_CLIENT_ID = process.env.AUTH_CLIENT_ID as string;
 export const AUTH_BASE_URL = process.env.AUTH_BASE_URL as string;
 export const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
-
-// const authUrl = `${process.env.AUTH_BASE_URL}/api/${process.env.AUTH_CLIENT_ID}`;

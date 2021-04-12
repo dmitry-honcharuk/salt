@@ -6,7 +6,7 @@
     "dev": "yarn validate-env && next dev",
     "build": "yarn validate-env && next build",
     "start": "next start",
-    "validate-env": "node src/config/validate-env.js"
+    "validate-env": "node src/app/config/validate-env.js"
   },
   "dependencies": {
     "@styled-icons/bootstrap": "^10.29.0",

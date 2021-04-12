@@ -46,8 +46,11 @@ export async function put<R = any, B extends Record<string, unknown> = any>(
   return data;
 }
 
-export async function get<T = any>(url: string): Promise<T> {
-  const response = await fetch(url);
+export async function get<T = any>(
+  url: string,
+  options?: Partial<Request>,
+): Promise<T> {
+  const response = await fetch(url, options);
 
   const data = await response.json();
 

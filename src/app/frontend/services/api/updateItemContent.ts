@@ -1,5 +1,5 @@
+import { put } from 'app/implementations/services/request-client';
 import { ItemEntity } from 'core/entities/Item';
-import { put } from './client';
 
 export const updateItemContent = (options: {
   listId: string;

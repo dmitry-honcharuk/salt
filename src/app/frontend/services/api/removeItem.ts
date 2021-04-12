@@ -1,4 +1,4 @@
-import { del } from './client';
+import { del } from 'app/implementations/services/request-client';
 
 export const removeItem = (options: {
   listId: string;

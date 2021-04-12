@@ -18,7 +18,7 @@ export function loginUserFactory({ authService }: Dependencies) {
     });
 
     if (response instanceof AuthError) {
-      throw response;
+      throw new CoreError('Email or password is invalid');
     }
 
     const user = await authService.getUserDetailsByToken(response);

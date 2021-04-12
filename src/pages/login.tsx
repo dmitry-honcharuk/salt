@@ -1,13 +1,14 @@
-import { post } from 'app/frontend/services/api/client';
+import { post } from 'app/implementations/services/request-client';
 import { FC, useEffect } from 'react';
 
 const Login: FC = () => {
   useEffect(() => {
-    post('/api/auth/register', {
-      email: 'my-email',
-      password: 'my-password',
+    post('/api/auth/login', {
+      email: 'salt-customer-1@example.com',
+      password: '12345aa',
     });
   }, []);
+
   return <h1>Login</h1>;
 };
 
