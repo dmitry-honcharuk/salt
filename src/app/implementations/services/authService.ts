@@ -52,5 +52,8 @@ export function authServiceFactory(cookieService: CookieService): AuthService {
       cookieService.saveToken(token);
       cookieService.saveUser(user);
     },
+    async getCurrentUser() {
+      return cookieService.getUser();
+    },
   };
 }

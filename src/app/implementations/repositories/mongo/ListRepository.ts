@@ -4,45 +4,56 @@ import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { ObjectId, WithId } from 'mongodb';
 import { getDatabase } from './mongo.client';
 
-type ListSchema = Omit<ListEntity, 'id'>;
+type ListSchema = Omit<ListEntity, 'id' | 'creator'> & {
+  creator: string;
+};
 
 export function buildMongoListRepository(): ListRepository {
   return {
-    createList: async ({ name }) => {
+    createList: async ({ name, createdAt, creator }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<ListSchema>('lists');
 
-      const list = {
+      const list: ListSchema = {
         name,
         items: [],
-        createdAt: Date.now(),
+        creator: creator.id,
+        createdAt,
       };
 
       const entry = await listCollection.insertOne(list);
 
       return {
         ...list,
+        creator,
         id: entry.insertedId.toHexString(),
       };
     },
-    getLists: async () => {
+    getLists: async ({ creator }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
-      const cursor = listCollection.find({});
+      const cursor = listCollection.find({
+        creator: creator.id,
+      });
 
       return cursor
-        .map(({ _id, ...list }) => ({ ...list, id: _id.toHexString() }))
+        .map(({ _id, ...list }) => ({
+          ...list,
+          creator,
+          id: _id.toHexString(),
+        }))
         .toArray();
     },
-    addItem: async ({ listId, content, done, createdAt }) => {
+    addItem: async ({ listId, content, done, creator, createdAt }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
+        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -68,13 +79,14 @@ export function buildMongoListRepository(): ListRepository {
 
       return item;
     },
-    getListById: async (listId) => {
+    getListById: async (listId, { creator }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const list = await listCollection.findOne({
         _id: new ObjectId(listId),
+        creator: creator.id,
       });
 
       if (!list) {
@@ -85,15 +97,17 @@ export function buildMongoListRepository(): ListRepository {
 
       return {
         ...fields,
+        creator,
         id: _id.toHexString(),
       };
     },
-    updateItem: async ({ listId, itemId }, itemFields) => {
+    updateItem: async ({ listId, itemId, creator }, itemFields) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
+        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -118,7 +132,7 @@ export function buildMongoListRepository(): ListRepository {
 
       return updatedItem;
     },
-    updateListName: async ({ listId, name }) => {
+    updateListName: async ({ listId, name, creator }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
@@ -126,6 +140,7 @@ export function buildMongoListRepository(): ListRepository {
       const { value } = await listCollection.findOneAndUpdate(
         {
           _id: new ObjectId(listId),
+          creator: creator.id,
         },
         { $set: { name } },
       );
@@ -136,14 +151,15 @@ export function buildMongoListRepository(): ListRepository {
 
       const { _id, ...list } = value;
 
-      return { id: _id.toHexString(), ...list, name };
+      return { id: _id.toHexString(), ...list, name, creator };
     },
-    removeItem: async ({ listId, itemId }) => {
+    removeItem: async ({ listId, itemId, creator }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
+        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -158,12 +174,15 @@ export function buildMongoListRepository(): ListRepository {
         },
       });
     },
-    removeList: async (listId: string) => {
+    removeList: async (listId: string, { creator }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
-      await listCollection.deleteOne({ _id: new ObjectId(listId) });
+      await listCollection.deleteOne({
+        _id: new ObjectId(listId),
+        creator: creator.id,
+      });
     },
   };
 }

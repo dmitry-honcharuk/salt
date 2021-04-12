@@ -1,9 +1,19 @@
 import { ListEntity } from 'core/entities/List';
+import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import { AuthService } from 'core/interfaces/services/AuthService';
 
-export function buildGetLists({ listRepository: listRepo }: Deps) {
+export function getListsUsecaseFactory({ authService, listRepository }: Deps) {
   return async (): Promise<ListEntity[]> => {
-    const lists = await listRepo.getLists();
+    const creator = await authService.getCurrentUser();
+
+    if (!creator) {
+      throw new CoreError('Forbidden');
+    }
+
+    const lists = await listRepository.getLists({
+      creator,
+    });
 
     return lists;
   };
@@ -11,4 +21,5 @@ export function buildGetLists({ listRepository: listRepo }: Deps) {
 
 type Deps = {
   listRepository: ListRepository;
+  authService: AuthService;
 };

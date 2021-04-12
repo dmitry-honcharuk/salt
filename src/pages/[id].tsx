@@ -9,6 +9,8 @@ import { updateListName } from 'app/frontend/services/api/updateListName';
 import { useEmit } from 'app/frontend/sockets/hooks/useEmit';
 import { useSubscribe } from 'app/frontend/sockets/hooks/useSubscribe';
 import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
+import { authServiceFactory } from 'app/implementations/services/authService';
+import { cookieServiceFactory } from 'app/implementations/services/cookieService';
 import {
   ItemAddedEvent,
   ItemContentChangedEvent,
@@ -19,7 +21,7 @@ import {
 } from 'app/types/socket';
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
-import { buildGetListById } from 'core/use-cases/getListById';
+import { getListByIdUsecaseFactory } from 'core/use-cases/getListById';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
 import find from 'lodash/find';
@@ -311,13 +313,19 @@ export default ListPage;
 
 export const getServerSideProps: GetServerSideProps<{
   list: ListEntity;
-}> = async ({ query }) => {
+}> = async ({ query, req, res }) => {
   const { id: queryId } = query;
+
+  const cookeService = cookieServiceFactory(req, res);
+  const authService = authServiceFactory(cookeService);
 
   const [id] = Array.isArray(queryId) ? queryId : [queryId];
 
   try {
-    const list = await buildGetListById({ listRepository })({
+    const list = await getListByIdUsecaseFactory({
+      authService,
+      listRepository,
+    })({
       listId: id,
     });
 

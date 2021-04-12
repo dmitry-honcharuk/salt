@@ -1,8 +1,18 @@
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import { AuthService } from 'core/interfaces/services/AuthService';
 
-export function buildRemoveItem({ listRepository }: Dependencies) {
+export function removeItemUsecaseFactory({
+  listRepository,
+  authService,
+}: Dependencies) {
   return async ({ listId, itemId }: Input): Promise<void> => {
+    const creator = await authService.getCurrentUser();
+
+    if (!creator) {
+      throw new CoreError('Forbidden');
+    }
+
     if (!listId) {
       throw new CoreError('listId is required.');
     }
@@ -11,7 +21,7 @@ export function buildRemoveItem({ listRepository }: Dependencies) {
       throw new CoreError('itemId is required.');
     }
 
-    const list = await listRepository.getListById(listId);
+    const list = await listRepository.getListById(listId, { creator });
 
     if (!list) {
       throw new CoreError(`No such list found. (${listId})`);
@@ -23,12 +33,13 @@ export function buildRemoveItem({ listRepository }: Dependencies) {
       throw new CoreError(`No such item found. (${itemId})`);
     }
 
-    await listRepository.removeItem({ listId, itemId });
+    await listRepository.removeItem({ listId, itemId, creator });
   };
 }
 
 type Dependencies = {
   listRepository: ListRepository;
+  authService: AuthService;
 };
 type Input = {
   listId?: string;

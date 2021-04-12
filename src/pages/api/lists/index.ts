@@ -1,21 +1,19 @@
 import { listRepository } from 'app/dependencies';
+import { authServiceFactory } from 'app/implementations/services/authService';
+import { cookieServiceFactory } from 'app/implementations/services/cookieService';
 import { createRoute } from 'app/utils/api/route';
-import { buildCreateList } from 'core/use-cases/createList';
-import { buildGetLists } from 'core/use-cases/getLists';
+import { createListUsecaseFactory } from 'core/use-cases/createList';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export default createRoute().get(getAllLists).post(createList);
-
-async function getAllLists(req: NextApiRequest, res: NextApiResponse) {
-  const getLists = buildGetLists({ listRepository });
-
-  res.json(await getLists());
-}
+export default createRoute().post(createList);
 
 async function createList(req: NextApiRequest, res: NextApiResponse) {
   const { body } = req;
 
-  const createList = buildCreateList({ listRepository });
+  const cookeService = cookieServiceFactory(req, res);
+  const authService = authServiceFactory(cookeService);
+
+  const createList = createListUsecaseFactory({ listRepository, authService });
 
   const list = await createList(body);
 

@@ -1,9 +1,12 @@
 import Cookies from 'cookies';
 import { IncomingMessage, ServerResponse } from 'http';
 
+type UserPayload = { id: string };
+
 export interface CookieService {
   saveToken: (token: string) => void;
-  saveUser: (user: { id: string }) => void;
+  saveUser: (user: UserPayload) => void;
+  getUser: () => UserPayload | null;
 }
 
 const TOKEN_COOKIE_NAME = 'ficdev-user-token';
@@ -23,6 +26,19 @@ export function cookieServiceFactory(
     },
     saveUser: (user) => {
       cookies.set(USER_COOKIE_NAME, JSON.stringify(user), { signed: true });
+    },
+    getUser: () => {
+      try {
+        const cookie = cookies.get(USER_COOKIE_NAME);
+
+        if (!cookie) {
+          return null;
+        }
+
+        return JSON.parse(cookie);
+      } catch (error) {
+        return null;
+      }
     },
   };
 }
