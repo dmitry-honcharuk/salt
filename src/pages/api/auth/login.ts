@@ -12,5 +12,5 @@ export default createRoute().post(async (req, res) => {
 
   await loginUser({ email, password });
 
-  res.end();
+  res.json({});
 });

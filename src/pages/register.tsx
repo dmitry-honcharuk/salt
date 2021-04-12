@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { AuthScreen, Type } from '../app/frontend/screens/AuthScreen';
 
-const Login: FC = () => {
-  return <AuthScreen type={Type.Login} />;
+const Register: FC = () => {
+  return <AuthScreen type={Type.Register} />;
 };
 
-export default Login;
+export default Register;

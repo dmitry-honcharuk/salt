@@ -12,15 +12,14 @@ export function authServiceFactory(cookieService: CookieService): AuthService {
       headers.append('authorization', `Bearer ${token}`);
 
       try {
-        const result = await get<{ id: string }>(
+        return await get<{ id: string }>(
           `${AUTH_BASE_URL}/api/${AUTH_CLIENT_ID}/authorize`,
           {
             headers,
           },
         );
-
-        return result;
       } catch (error) {
+        console.log(error);
         throw new AuthError();
       }
     },

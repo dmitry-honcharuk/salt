@@ -7,6 +7,7 @@ import { ListEntity } from 'core/entities/List';
 import { getListsUsecaseFactory } from 'core/use-cases/getLists';
 import { GetServerSideProps } from 'next';
 import { FunctionComponent } from 'react';
+import { ForbiddenError } from '../core/errors/ForbiddenError';
 
 const Home: FunctionComponent<Props> = ({ lists }) => {
   if (!lists.length) {
@@ -21,14 +22,29 @@ export default Home;
 export const getServerSideProps: GetServerSideProps<{
   lists: ListEntity[];
 }> = async ({ req, res }) => {
-  const cookeService = cookieServiceFactory(req, res);
-  const authService = authServiceFactory(cookeService);
+  try {
+    const cookeService = cookieServiceFactory(req, res);
+    const authService = authServiceFactory(cookeService);
 
-  const getLists = getListsUsecaseFactory({ listRepository, authService });
+    const getLists = getListsUsecaseFactory({ listRepository, authService });
 
-  const lists = await getLists();
+    const lists = await getLists();
 
-  return {
-    props: { lists },
-  };
+    return {
+      props: { lists },
+    };
+  } catch (e) {
+    if (e instanceof ForbiddenError) {
+      return {
+        props: { lists: [] },
+        redirect: {
+          destination: '/login',
+        },
+      };
+    }
+
+    return {
+      notFound: true,
+    };
+  }
 };
