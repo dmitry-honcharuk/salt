@@ -30,6 +30,7 @@ import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { FunctionComponent, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
+import { ForbiddenError } from '../core/errors/ForbiddenError';
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
@@ -289,7 +290,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
 
   const handleRemoveList = async () => {
     await removeList({ listId: rawList.id });
-    push('/');
+    await push('/');
   };
 
   return (
@@ -312,19 +313,28 @@ export default ListPage;
 export const getServerSideProps: GetServerSideProps<{
   list: ListEntity;
 }> = async ({ query, req, res }) => {
-  const { id: queryId } = query;
-
-  const authService = appAuthServiceFactory(req, res);
-  const creator = await authService.getCurrentUser();
-
-  const [id] = Array.isArray(queryId) ? queryId : [queryId];
-
   try {
+    const { id: queryId } = query;
+
+    const authService = appAuthServiceFactory(req, res);
+    const currentUser = await authService.getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        redirect: {
+          destination: '/',
+          permanent: true,
+        },
+      };
+    }
+
+    const [id] = Array.isArray(queryId) ? queryId : [queryId];
+
     const list = await getListByIdUsecaseFactory({
       listRepository,
     })({
       listId: id,
-      creator,
+      creator: currentUser,
     });
 
     if (!list) {
@@ -334,7 +344,18 @@ export const getServerSideProps: GetServerSideProps<{
     return {
       props: { list },
     };
-  } catch (e) {
-    return { notFound: true };
+  } catch (error) {
+    if (!(error instanceof ForbiddenError)) {
+      return {
+        notFound: true,
+      };
+    }
+
+    return {
+      redirect: {
+        destination: '/',
+        permanent: true,
+      },
+    };
   }
 };

@@ -1,51 +1,38 @@
-import { appAuthServiceFactory, listRepository } from 'app/dependencies';
-import { HomeScreen, Props } from 'app/frontend/screens/HomeScreen';
-import { WelcomeScreen } from 'app/frontend/screens/WelcomeScreen';
-import { ListEntity } from 'core/entities/List';
-import { getListsUsecaseFactory } from 'core/use-cases/getLists';
+import { appAuthServiceFactory } from 'app/dependencies';
 import { GetServerSideProps } from 'next';
 import { FunctionComponent } from 'react';
+import { AuthenticateScreen } from '../app/frontend/screens/AuthenticateScreen';
 import { ForbiddenError } from '../core/errors/ForbiddenError';
 
-const Home: FunctionComponent<Props> = ({ lists }) => {
-  if (!lists.length) {
-    return <WelcomeScreen />;
-  }
-
-  return <HomeScreen lists={lists} />;
+const Home: FunctionComponent = () => {
+  return <AuthenticateScreen />;
 };
 
 export default Home;
 
-export const getServerSideProps: GetServerSideProps<{
-  lists: ListEntity[];
-}> = async ({ req, res }) => {
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+  const authService = appAuthServiceFactory(req, res);
+
   try {
-    const authService = appAuthServiceFactory(req, res);
+    const currentUser = await authService.getCurrentUser();
 
-    const getLists = getListsUsecaseFactory({
-      listRepository,
-    });
-
-    const lists = await getLists({
-      creator: await authService.getCurrentUser(),
-    });
-
-    return {
-      props: { lists },
-    };
-  } catch (e) {
-    if (e instanceof ForbiddenError) {
+    if (currentUser) {
       return {
-        props: { lists: [] },
         redirect: {
-          destination: '/login',
+          destination: '/dashboard',
+          permanent: true,
         },
       };
     }
-
-    return {
-      notFound: true,
-    };
+  } catch (error) {
+    if (!(error instanceof ForbiddenError)) {
+      return {
+        notFound: true,
+      };
+    }
   }
+
+  return {
+    props: {},
+  };
 };

@@ -1,29 +1,32 @@
 import { BaseButton } from 'app/frontend/common/BaseButton';
 import { H5 } from 'app/frontend/common/Typography';
-import { usePromise } from 'app/frontend/hooks/usePromise';
-import { createList } from 'app/frontend/services/api/createList';
 import { getSpace } from 'app/frontend/theme-selectors';
 import { useRouter } from 'next/router';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
+import { useAuth } from '../auth';
 
 export const AuthenticateScreen: FunctionComponent = () => {
-  const { push } = useRouter();
-  const [create, { pending }] = usePromise(() => createList());
+  const { authorizeWithRedirect } = useAuth();
+  const { replace } = useRouter();
+  const [pending, setPending] = useState(false);
 
-  const handleCreateList = async () => {
-    const list = await create();
-
-    await push(`/${list.id}`);
+  const authorize = () => {
+    setPending(true);
+    authorizeWithRedirect({
+      onSuccess: () => replace('/dashboard'),
+    });
   };
 
   return (
     <Root>
       <Content>
-        <Title>You need to authenticate to continue</Title>
-        <CreateButton onClick={handleCreateList} disabled={pending}>
-          Let's do it!
-        </CreateButton>
+        <Title>
+          {pending ? 'Processing...' : 'You need to authenticate to continue'}
+        </Title>
+        {!pending && (
+          <CreateButton onClick={authorize}>Let's do it!</CreateButton>
+        )}
       </Content>
     </Root>
   );

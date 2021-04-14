@@ -15,11 +15,11 @@ export const AuthProvider: FC<Props> = ({ clientId, audience, children }) => {
     fulfilled: boolean;
   }>({
     user: null,
-    fulfilled: !getTokenCookie(),
+    fulfilled: typeof window !== 'undefined' ? !getTokenCookie() : false,
   });
 
   const setUser = useCallback((user: User | null) => {
-    setState(s => ({ ...s, user }));
+    setState((s) => ({ ...s, user }));
   }, []);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export const AuthProvider: FC<Props> = ({ clientId, audience, children }) => {
         .then((user) => setState({ user, fulfilled: true }))
         .catch(() => {
           clearTokenCookie();
-          setState(s => ({ ...s, fulfilled: true }));
+          setState((s) => ({ ...s, fulfilled: true }));
         });
     }
   }, [clientId, state]);
