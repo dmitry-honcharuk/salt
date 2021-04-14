@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { AuthContext } from './context';
 import { User } from './User';
 import { clearTokenCookie, getTokenCookie } from './utils/cookies';
@@ -10,12 +10,22 @@ interface Props {
 }
 
 export const AuthProvider: FC<Props> = ({ clientId, audience, children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [state, setState] = useState<{
+    user: User | null;
+    fulfilled: boolean;
+  }>({
+    user: null,
+    fulfilled: !getTokenCookie(),
+  });
+
+  const setUser = useCallback((user: User | null) => {
+    setState(s => ({ ...s, user }));
+  }, []);
 
   useEffect(() => {
     const token = getTokenCookie();
 
-    if (!user && token) {
+    if (!state.user && token) {
       const headers = new Headers();
 
       headers.append('authorization', `Bearer ${token}`);
@@ -28,17 +38,21 @@ export const AuthProvider: FC<Props> = ({ clientId, audience, children }) => {
 
           throw new Error();
         })
-        .then(setUser)
-        .catch(() => clearTokenCookie());
+        .then((user) => setState({ user, fulfilled: true }))
+        .catch(() => {
+          clearTokenCookie();
+          setState(s => ({ ...s, fulfilled: true }));
+        });
     }
-  }, [clientId, user]);
+  }, [clientId, state]);
 
   return (
     <AuthContext.Provider
       value={{
         clientId,
         audience,
-        user,
+        user: state.user,
+        isFulfilled: state.fulfilled,
         setUser,
       }}
     >

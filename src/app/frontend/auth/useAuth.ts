@@ -4,8 +4,8 @@ import { User } from './User';
 import { clearTokenCookie, setTokenCookie } from './utils/cookies';
 import { getAuthorizePageUrl } from './utils/url';
 
-export function useAuth(): AuthContext {
-  const { clientId, audience, user, setUser } = useContext(AuthContext);
+export function useAuth(): AuthHook {
+  const { clientId, audience, user, setUser, isFulfilled } = useContext(AuthContext);
   const authWindowRef = useRef<Window | null>(null);
 
   useEffect(() => {
@@ -46,14 +46,16 @@ export function useAuth(): AuthContext {
   return {
     authorizeWithRedirect,
     user,
+    isFulfilled,
     logout,
   };
 }
 
-type AuthContext = {
+type AuthHook = {
   authorizeWithRedirect: () => void;
   logout: () => void;
   user: User | null;
+  isFulfilled: boolean;
 };
 
 type AuthMessage = MessageEvent<{

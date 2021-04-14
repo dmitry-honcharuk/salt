@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 
-export const WelcomeScreen: FunctionComponent = () => {
+export const AuthenticateScreen: FunctionComponent = () => {
   const { push } = useRouter();
   const [create, { pending }] = usePromise(() => createList());
 
@@ -20,9 +20,9 @@ export const WelcomeScreen: FunctionComponent = () => {
   return (
     <Root>
       <Content>
-        <Title>You don't seem to have any lists yet</Title>
+        <Title>You need to authenticate to continue</Title>
         <CreateButton onClick={handleCreateList} disabled={pending}>
-          Create a list then!
+          Let's do it!
         </CreateButton>
       </Content>
     </Root>
