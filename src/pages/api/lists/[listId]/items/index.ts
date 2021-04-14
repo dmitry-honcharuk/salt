@@ -1,23 +1,23 @@
-import { appAuthServiceFactory, listRepository } from 'app/dependencies';
+import { authorized, listRepository } from 'app/dependencies';
 import { createRoute } from 'app/utils/api/route';
 import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
 import { addItemUsecaseFactory } from 'core/use-cases/addItem';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export default createRoute().post(createItem);
+export default createRoute().use(authorized()).post(createItem);
 
 async function createItem(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery },
     body: { content, done },
+    user,
   } = req;
-  const authService = appAuthServiceFactory(req, res);
-
   const listId = normalizeQueryParam(listIdQuery);
 
-  const addItem = addItemUsecaseFactory({ listRepository, authService });
+  const addItem = addItemUsecaseFactory({ listRepository });
 
   const item = await addItem({
+    creator: user,
     listId,
     content,
     done,

@@ -1,12 +1,10 @@
 import { ListEntity } from 'core/entities/List';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
-import { AuthService } from 'core/interfaces/services/AuthService';
+import { UserEntity } from '../entities/User';
 import { ForbiddenError } from '../errors/ForbiddenError';
 
-export function getListsUsecaseFactory({ authService, listRepository }: Deps) {
-  return async (): Promise<ListEntity[]> => {
-    const creator = await authService.getCurrentUser();
-
+export function getListsUsecaseFactory({ listRepository }: Deps) {
+  return async ({ creator }: Input): Promise<ListEntity[]> => {
     if (!creator) {
       throw new ForbiddenError();
     }
@@ -19,5 +17,8 @@ export function getListsUsecaseFactory({ authService, listRepository }: Deps) {
 
 type Deps = {
   listRepository: ListRepository;
-  authService: AuthService;
+};
+
+type Input = {
+  creator?: UserEntity | null;
 };

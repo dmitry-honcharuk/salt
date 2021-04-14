@@ -1,15 +1,10 @@
 import { ListEntity } from 'core/entities/List';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
-import { AuthService } from 'core/interfaces/services/AuthService';
+import { UserEntity } from '../entities/User';
 
-export function getListByIdUsecaseFactory({
-  authService,
-  listRepository,
-}: Deps) {
-  return async ({ listId: id }: Input): Promise<ListEntity | null> => {
-    const creator = await authService.getCurrentUser();
-
+export function getListByIdUsecaseFactory({ listRepository }: Deps) {
+  return async ({ listId: id, creator }: Input): Promise<ListEntity | null> => {
     if (!creator) {
       throw new CoreError('Forbidden');
     }
@@ -18,16 +13,14 @@ export function getListByIdUsecaseFactory({
       throw new CoreError('Id is required');
     }
 
-    const list = await listRepository.getListById(id, { creator });
-
-    return list;
+    return listRepository.getListById(id, { creator });
   };
 }
 
 type Deps = {
   listRepository: ListRepository;
-  authService: AuthService;
 };
 type Input = {
   listId?: string;
+  creator?: UserEntity | null;
 };

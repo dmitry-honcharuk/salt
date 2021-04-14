@@ -1,14 +1,9 @@
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
-import { AuthService } from 'core/interfaces/services/AuthService';
+import { UserEntity } from '../entities/User';
 
-export function removeItemUsecaseFactory({
-  listRepository,
-  authService,
-}: Dependencies) {
-  return async ({ listId, itemId }: Input): Promise<void> => {
-    const creator = await authService.getCurrentUser();
-
+export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
+  return async ({ listId, itemId, creator }: Input): Promise<void> => {
     if (!creator) {
       throw new CoreError('Forbidden');
     }
@@ -39,9 +34,9 @@ export function removeItemUsecaseFactory({
 
 type Dependencies = {
   listRepository: ListRepository;
-  authService: AuthService;
 };
 type Input = {
   listId?: string;
   itemId?: string;
+  creator?: UserEntity | null;
 };

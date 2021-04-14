@@ -1,6 +1,7 @@
 import { AuthError } from 'core/errors/AuthError';
 import { AUTH_URL_BASE } from './constants';
 import { AuthService } from './interfaces/AuthService';
+import { User } from './interfaces/User';
 import { get } from './request-client';
 
 interface Settings {
@@ -10,17 +11,12 @@ interface Settings {
 export function authServiceFactory({ clientId }: Settings): AuthService {
   return {
     async getUserDetailsByToken(token: string): Promise<{ id: string } | null> {
-      const headers = new Headers();
-
-      headers.append('authorization', `Bearer ${token}`);
-
       try {
-        return await get<{ id: string }>(
-          `${AUTH_URL_BASE}/api/${clientId}/authorize`,
-          {
-            headers,
+        return await get<User>(`${AUTH_URL_BASE}/api/${clientId}/authorize`, {
+          headers: {
+            authorization: `Bearer ${token}`,
           },
-        );
+        });
       } catch (error) {
         console.log(error);
         throw new AuthError();

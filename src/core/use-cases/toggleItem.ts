@@ -1,17 +1,12 @@
 import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
-import { AuthService } from 'core/interfaces/services/AuthService';
 import produce from 'immer';
 import omit from 'lodash/omit';
+import { UserEntity } from '../entities/User';
 
-export function toggleItemUsecaseFactory({
-  authService,
-  listRepository,
-}: Dependencies) {
-  return async ({ listId, itemId }: Input): Promise<ItemEntity> => {
-    const creator = await authService.getCurrentUser();
-
+export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
+  return async ({ listId, itemId, creator }: Input): Promise<ItemEntity> => {
     if (!creator) {
       throw new CoreError('Forbidden');
     }
@@ -55,9 +50,9 @@ export function toggleItemUsecaseFactory({
 
 type Dependencies = {
   listRepository: ListRepository;
-  authService: AuthService;
 };
 type Input = {
   listId?: string;
   itemId?: string;
+  creator?: UserEntity | null;
 };

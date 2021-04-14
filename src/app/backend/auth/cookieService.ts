@@ -10,9 +10,7 @@ export function cookieServiceFactory(
   req: IncomingMessage,
   res: ServerResponse,
 ): CookieService {
-  const cookies = new Cookies(req, res, {
-    keys: ['aha'],
-  });
+  const cookies = new Cookies(req, res);
 
   return {
     getToken: () => cookies.get(TOKEN_COOKIE_NAME),

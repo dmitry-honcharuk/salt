@@ -25,10 +25,11 @@ export const getServerSideProps: GetServerSideProps<{
 
     const getLists = getListsUsecaseFactory({
       listRepository,
-      authService,
     });
 
-    const lists = await getLists();
+    const lists = await getLists({
+      creator: await authService.getCurrentUser(),
+    });
 
     return {
       props: { lists },

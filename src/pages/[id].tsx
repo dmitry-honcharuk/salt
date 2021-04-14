@@ -315,15 +315,16 @@ export const getServerSideProps: GetServerSideProps<{
   const { id: queryId } = query;
 
   const authService = appAuthServiceFactory(req, res);
+  const creator = await authService.getCurrentUser();
 
   const [id] = Array.isArray(queryId) ? queryId : [queryId];
 
   try {
     const list = await getListByIdUsecaseFactory({
-      authService,
       listRepository,
     })({
       listId: id,
+      creator,
     });
 
     if (!list) {
