@@ -1,4 +1,4 @@
-import { listRepository } from 'app/dependencies';
+import { appAuthServiceFactory, listRepository } from 'app/dependencies';
 import { ListScreen } from 'app/frontend/screens/ListScreen';
 import { addItem } from 'app/frontend/services/api/addItem';
 import { removeItem } from 'app/frontend/services/api/removeItem';
@@ -9,8 +9,6 @@ import { updateListName } from 'app/frontend/services/api/updateListName';
 import { useEmit } from 'app/frontend/sockets/hooks/useEmit';
 import { useSubscribe } from 'app/frontend/sockets/hooks/useSubscribe';
 import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
-import { authServiceFactory } from 'app/implementations/services/authService';
-import { cookieServiceFactory } from 'app/implementations/services/cookieService';
 import {
   ItemAddedEvent,
   ItemContentChangedEvent,
@@ -316,8 +314,7 @@ export const getServerSideProps: GetServerSideProps<{
 }> = async ({ query, req, res }) => {
   const { id: queryId } = query;
 
-  const cookeService = cookieServiceFactory(req, res);
-  const authService = authServiceFactory(cookeService);
+  const authService = appAuthServiceFactory(req, res);
 
   const [id] = Array.isArray(queryId) ? queryId : [queryId];
 

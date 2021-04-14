@@ -1,6 +1,4 @@
-import { listRepository } from 'app/dependencies';
-import { authServiceFactory } from 'app/implementations/services/authService';
-import { cookieServiceFactory } from 'app/implementations/services/cookieService';
+import { appAuthServiceFactory, listRepository } from 'app/dependencies';
 import { createRoute } from 'app/utils/api/route';
 import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
 import { removeListUsecaseFactory } from 'core/use-cases/removeList';
@@ -14,8 +12,7 @@ async function updateItemName(req: NextApiRequest, res: NextApiResponse) {
     query: { listId: listIdQuery },
     body: { name },
   } = req;
-  const cookeService = cookieServiceFactory(req, res);
-  const authService = authServiceFactory(cookeService);
+  const authService = appAuthServiceFactory(req, res);
 
   const listId = normalizeQueryParam(listIdQuery);
 
@@ -33,8 +30,7 @@ async function removeList(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery },
   } = req;
-  const cookeService = cookieServiceFactory(req, res);
-  const authService = authServiceFactory(cookeService);
+  const authService = appAuthServiceFactory(req, res);
 
   const listId = normalizeQueryParam(listIdQuery);
 

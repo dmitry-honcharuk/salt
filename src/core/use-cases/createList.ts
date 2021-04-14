@@ -14,13 +14,11 @@ export function createListUsecaseFactory({
       throw new CoreError('Forbidden');
     }
 
-    const list = await listRepository.createList({
+    return listRepository.createList({
       name: name ?? '',
       createdAt: Date.now(),
       creator,
     });
-
-    return list;
   };
 }
 
