@@ -16,7 +16,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider
       clientId={NEXT_PUBLIC_AUTH_CLIENT_ID}
-      audience='http://localhost:3000'
+      audience='http://dho.local:3000'
     >
       <SocketContext.Provider value={{ socket: io(NEXT_PUBLIC_SOCKET_URL) }}>
         <Head>

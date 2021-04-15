@@ -1,11 +1,9 @@
 import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
-import { DeleteForever as DeleteIconBase } from '@styled-icons/material/DeleteForever';
-import { BaseButton } from 'app/frontend/common/BaseButton';
+import { DeleteForever } from '@styled-icons/material/DeleteForever';
 import { Layout } from 'app/frontend/common/Layout';
 import {
   getColor,
   getLighterColor,
-  getSpacePx,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
 import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
@@ -14,6 +12,7 @@ import { ItemEntity } from 'core/entities/Item';
 import Link from 'next/link';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
+import { Actions, Button, Icon } from '../common/Actions';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
 
@@ -57,16 +56,21 @@ export const ListScreen: FunctionComponent<Props> = ({
             onChange={({ target }) => setName(target.value)}
           />
         </NameWrapper>
-        <DeleteButton
-          disabled={isDeleting}
-          color='secondary'
-          onClick={async () => {
-            setDeleting(true);
-            await removeList();
-          }}
-        >
-          <DeleteIcon />
-        </DeleteButton>
+        <Actions
+          items={[
+            <DeleteButton
+              disabled={isDeleting}
+              color='secondary'
+              onClick={async () => {
+                setDeleting(true);
+                await removeList();
+              }}
+            >
+              <Icon as={DeleteForever} />
+              <span>remove</span>
+            </DeleteButton>,
+          ]}
+        />
       </Header>
       <NewItemRow onCreate={addItem} />
       <Ul>
@@ -141,11 +145,6 @@ const NameInput = styled.input`
   }
 `;
 
-const DeleteButton = styled(BaseButton)`
-  padding: ${getSpacePx()};
-`;
-
-const DeleteIcon = styled(DeleteIconBase)`
-  height: ${getSpacePx(6)};
-  color: inherit;
+const DeleteButton = styled(Button)`
+  color: ${getColor('secondary')};
 `;

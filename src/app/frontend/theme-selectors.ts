@@ -22,11 +22,15 @@ export const getDarkerColor = (
 export const getSpace = (k = 1) => ({ theme }: Props): number =>
   theme.spacing.unit * k;
 
-export const getSpacePx = (k = 1) => ({ theme }: Props): string =>
-  getSpace(k)({ theme }) + 'px';
-
 export const getSpaceSet = (...k: number[]) => (p: Props): string =>
   k
     .map((k) => getSpace(k)(p))
     .map((space) => `${space}px`)
     .join(' ');
+
+export const getSpacePx = (...multies: (number | string)[]) => (p: Props) =>
+  multies.length
+    ? multies
+        .map((k) => (typeof k === 'number' ? `${getSpace(k)(p)}px` : k))
+        .join(' ')
+    : getSpacePx(1);
