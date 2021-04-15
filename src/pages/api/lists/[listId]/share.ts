@@ -1,19 +1,23 @@
-import {createRoute} from "../../../../app/utils/api/route";
-import {shareListUsecaseFactory} from "../../../../core/use-cases/shareList";
-import {authorized, listRepository} from "../../../../app/dependencies";
-import {normalizeQueryParam} from "../../../../app/utils/normalizeQueryParam";
+import { authorized, listRepository } from '../../../../app/dependencies';
+import { createRoute } from '../../../../app/utils/api/route';
+import { normalizeQueryParam } from '../../../../app/utils/normalizeQueryParam';
+import { shareListUsecaseFactory } from '../../../../core/use-cases/shareList';
 
-
-export default createRoute().get(async (req,res) => {
+export default createRoute()
+  .use(authorized())
+  .get(async (req, res) => {
     const {
-        query: { listId: listIdQuery },
+      query: { listId: listIdQuery },
+      user,
     } = req;
+
     const listId = normalizeQueryParam(listIdQuery);
-    const shareList = shareListUsecaseFactory({listRepository})
-    await shareList({ listId, currentUserId: '233232' });
+
+    const shareList = shareListUsecaseFactory({ listRepository });
+
+    await shareList({ listId, currentUserId: user?.id });
 
     res.json({
-        success: true
-    })
-    }
-)
+      success: true,
+    });
+  });

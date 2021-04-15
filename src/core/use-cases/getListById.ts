@@ -12,9 +12,10 @@ export function getListByIdUsecaseFactory({ listRepository }: Deps) {
     if (!id) {
       throw new CoreError('Id is required');
     }
+
     const list = await listRepository.getListById(id);
 
-    if(creator?.id !== list?.creator.id) {
+    if (creator?.id !== list?.creator.id) {
       throw new CoreError('Forbidden');
     }
 

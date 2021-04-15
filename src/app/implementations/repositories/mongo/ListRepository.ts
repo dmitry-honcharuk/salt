@@ -1,10 +1,10 @@
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
-import { ObjectId, WithId } from 'mongodb';
-import { getDatabase } from './mongo.client';
-import {UserEntity} from "../../../../core/entities/User";
 import uniqueBy from 'lodash/uniqBy';
+import { ObjectId, WithId } from 'mongodb';
+import { UserEntity } from '../../../../core/entities/User';
+import { getDatabase } from './mongo.client';
 
 type ListSchema = Omit<ListEntity, 'id' | 'creator'> & {
   creator: string;
@@ -98,10 +98,10 @@ export function buildMongoListRepository(): ListRepository {
 
       return {
         ...fields,
-        creator: {
-          id: list.creator
-        },
         id: _id.toHexString(),
+        creator: {
+          id: list.creator,
+        },
       };
     },
     updateItem: async ({ listId, itemId, creator }, itemFields) => {
@@ -187,30 +187,36 @@ export function buildMongoListRepository(): ListRepository {
         creator: creator.id,
       });
     },
-    addParticipant: async (options: { listId: string; participantId: string }): Promise<void> => {
+    addParticipant: async (options: {
+      listId: string;
+      participantId: string;
+    }): Promise<void> => {
       const db = await getDatabase();
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
-      const filter = {
-        _id: new ObjectId(options.listId)
-      }
-      const list = await listCollection.findOne(filter)
 
-      if(!list) {
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+
+      const filter = {
+        _id: new ObjectId(options.listId),
+      };
+
+      const list = await listCollection.findOne(filter);
+
+      if (!list) {
         return;
       }
 
       const participant: UserEntity = {
-        id: options.participantId
-      }
+        id: options.participantId,
+      };
 
       const participants = list.participants ?? [];
-      const newParticipants = uniqueBy([...participants, participant], 'id');
+
       await listCollection.updateOne(filter, {
         $set: {
-          participants: newParticipants
-        }
-      })
-    }
+          participants: uniqueBy([...participants, participant], 'id'),
+        },
+      });
+    },
   };
 }
 

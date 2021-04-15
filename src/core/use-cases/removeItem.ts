@@ -22,7 +22,7 @@ export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError(`No such list found. (${listId})`);
     }
 
-    if(creator?.id !== list.creator.id) {
+    if (creator?.id !== list.creator.id) {
       throw new CoreError('Forbidden');
     }
 
