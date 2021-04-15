@@ -12,10 +12,14 @@ export function removeListUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError('listId is required.');
     }
 
-    const list = await listRepository.getListById(listId, { creator });
+    const list = await listRepository.getListById(listId);
 
     if (!list) {
       throw new CoreError(`No such list found. (${listId})`);
+    }
+
+    if (creator?.id !== list.creator.id) {
+      throw new CoreError('Forbidden');
     }
 
     await listRepository.removeList(listId, { creator });

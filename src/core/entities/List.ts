@@ -7,4 +7,5 @@ export interface ListEntity {
   items: ItemEntity[];
   creator: UserEntity;
   createdAt: number;
+  participants?: UserEntity[];
 }
