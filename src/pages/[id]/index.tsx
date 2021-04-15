@@ -19,6 +19,7 @@ import {
 } from 'app/types/socket';
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
+import { ForbiddenError } from 'core/errors/ForbiddenError';
 import { getListByIdUsecaseFactory } from 'core/use-cases/getListById';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
@@ -30,7 +31,6 @@ import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { FunctionComponent, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
-import { ForbiddenError } from '../core/errors/ForbiddenError';
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
@@ -295,6 +295,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
 
   return (
     <ListScreen
+      listId={rawList.id}
       name={name}
       createdAt={rawList.createdAt}
       setName={handleNameChange}

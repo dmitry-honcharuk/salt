@@ -1,5 +1,6 @@
 import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
 import { DeleteForever } from '@styled-icons/material/DeleteForever';
+import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
 import {
   getColor,
@@ -13,10 +14,12 @@ import Link from 'next/link';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
+import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
 
 type Props = {
+  listId: string;
   items: DisplayableItem[];
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
@@ -29,6 +32,7 @@ type Props = {
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
+  listId,
   items,
   toggleItem,
   updateContent,
@@ -58,6 +62,12 @@ export const ListScreen: FunctionComponent<Props> = ({
         </NameWrapper>
         <Actions
           items={[
+            <Link href={`/${listId}/settings`}>
+              <Button href={`/${listId}/settings`} as={LinkBase}>
+                <Icon as={Tune} />
+                <span>settings</span>
+              </Button>
+            </Link>,
             <DeleteButton
               disabled={isDeleting}
               color='secondary'
