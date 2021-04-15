@@ -3,6 +3,8 @@ import { ListEntity } from 'core/entities/List';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { ObjectId, WithId } from 'mongodb';
 import { getDatabase } from './mongo.client';
+import {UserEntity} from "../../../../core/entities/User";
+import uniqueBy from 'lodash/uniqBy';
 
 type ListSchema = Omit<ListEntity, 'id' | 'creator'> & {
   creator: string;
@@ -79,14 +81,13 @@ export function buildMongoListRepository(): ListRepository {
 
       return item;
     },
-    getListById: async (listId, { creator }) => {
+    getListById: async (listId) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const list = await listCollection.findOne({
         _id: new ObjectId(listId),
-        creator: creator.id,
       });
 
       if (!list) {
@@ -97,7 +98,9 @@ export function buildMongoListRepository(): ListRepository {
 
       return {
         ...fields,
-        creator,
+        creator: {
+          id: list.creator
+        },
         id: _id.toHexString(),
       };
     },
@@ -184,6 +187,30 @@ export function buildMongoListRepository(): ListRepository {
         creator: creator.id,
       });
     },
+    addParticipant: async (options: { listId: string; participantId: string }): Promise<void> => {
+      const db = await getDatabase();
+      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const filter = {
+        _id: new ObjectId(options.listId)
+      }
+      const list = await listCollection.findOne(filter)
+
+      if(!list) {
+        return;
+      }
+
+      const participant: UserEntity = {
+        id: options.participantId
+      }
+
+      const participants = list.participants ?? [];
+      const newParticipants = uniqueBy([...participants, participant], 'id');
+      await listCollection.updateOne(filter, {
+        $set: {
+          participants: newParticipants
+        }
+      })
+    }
   };
 }
 

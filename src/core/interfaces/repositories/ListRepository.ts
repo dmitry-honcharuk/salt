@@ -12,7 +12,6 @@ export interface ListRepository {
   addItem(options: AddItem): Promise<ItemEntity | null>;
   getListById(
     id: string,
-    options: { creator: UserEntity },
   ): Promise<ListEntity | null>;
   updateItem(
     options: { listId: string; itemId: string; creator: UserEntity },
@@ -29,6 +28,10 @@ export interface ListRepository {
     creator: UserEntity;
   }): Promise<void>;
   removeList(listId: string, options: { creator: UserEntity }): Promise<void>;
+  addParticipant(options: {
+    listId: string,
+    participantId: string
+  }): Promise<void>
 }
 
 type AddItem = Omit<ItemEntity, 'id'> & {

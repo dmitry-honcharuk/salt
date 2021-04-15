@@ -26,10 +26,14 @@ export function updateItemContentUsecaseFactory({
       throw new CoreError('itemId is required.');
     }
 
-    const list = await listRepository.getListById(listId, { creator });
+    const list = await listRepository.getListById(listId);
 
     if (!list) {
       throw new CoreError(`No such list found. (${listId})`);
+    }
+
+    if(creator?.id !== list.creator.id) {
+      throw new CoreError('Forbidden');
     }
 
     const item = list.items.find(({ id }) => id === itemId);
