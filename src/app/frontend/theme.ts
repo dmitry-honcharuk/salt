@@ -6,10 +6,11 @@ export const theme = {
   colors: {
     main: MAIN_COLOR,
     secondary: '#e58869',
+    white: '#fff',
     text: '#3b3b3b',
     nameFieldBorder: '#4b4a4aeb',
     listItemBorder: '#e0e0e0',
-    addItemButtonColor: Color(MAIN_COLOR).darken(0.2).string(),
+    addItemButtonColor: Color(MAIN_COLOR).darken(0.5).string(),
   },
   spacing: { unit: 5 },
 } as const;

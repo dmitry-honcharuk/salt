@@ -1,40 +1,24 @@
-import {
-  getColor,
-  getLighterColor,
-  getSpacePx,
-} from 'app/frontend/theme-selectors';
+import { getColor, getSpacePx } from 'app/frontend/theme-selectors';
 import styled from 'styled-components';
+import { ButtonBase } from './ButtonBase';
 
 const COLOR = {
   main: 'main',
   secondary: 'secondary',
+  text: 'text',
 } as const;
 
 type Color = keyof typeof COLOR;
 
-export const BaseButton = styled.button<{ color?: Color }>`
-  background-color: transparent;
+export const BaseButton = styled(ButtonBase)<{ color?: Color }>`
   border: 2px dashed
     ${({ color = COLOR.main, theme }) => getColor(color)({ theme })};
   padding: ${getSpacePx(2)};
-  font-size: 1rem;
-  text-transform: lowercase;
   transition: 100ms background-color cubic-bezier(0, 0, 0.2, 1);
-  cursor: pointer;
   color: ${({ color = COLOR.main, theme }) => getColor(color)({ theme })};
-
-  :focus {
-    outline: none;
-  }
 
   :active {
     background-color: ${({ color = COLOR.main, theme }) =>
       getColor(color)({ theme })};
-  }
-
-  &[disabled] {
-    border-color: ${getLighterColor('text', 2)};
-    color: ${getLighterColor('text', 2)};
-    cursor: default;
   }
 `;

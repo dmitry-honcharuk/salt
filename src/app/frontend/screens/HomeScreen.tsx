@@ -1,5 +1,5 @@
 import { ArrowRightSquare } from '@styled-icons/bootstrap';
-import { BaseButton } from 'app/frontend/common/BaseButton';
+import { PlaylistAdd } from '@styled-icons/material/PlaylistAdd';
 import { Layout } from 'app/frontend/common/Layout';
 import { H1, H4 } from 'app/frontend/common/Typography';
 import { usePromise } from 'app/frontend/hooks/usePromise';
@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
 import styled from 'styled-components';
+import { Actions, Button, Icon as IconBase } from '../common/Actions';
 
 export type Props = {
   lists: ListEntity[];
@@ -28,16 +29,21 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
     <Layout>
       <Header>
         <H1 as={H4}>All Lists</H1>
-        <AddListButton
-          onClick={async () => {
-            const list = await create();
+        <Actions
+          items={[
+            <AddListButton
+              onClick={async () => {
+                const list = await create();
 
-            push(`/${list.id}`);
-          }}
-          disabled={pending}
-        >
-          +
-        </AddListButton>
+                await push(`/${list.id}`);
+              }}
+              disabled={pending}
+            >
+              <AddListIcon as={PlaylistAdd} />
+              <span>create list</span>
+            </AddListButton>,
+          ]}
+        />
       </Header>
       <Ul>
         {lists.map(({ id, name, createdAt }) => (
@@ -63,14 +69,8 @@ const Header = styled.header`
   justify-content: space-between;
 `;
 
-const AddListButton = styled(BaseButton)`
-  border: 2px dashed ${getColor('addItemButtonColor')};
+const AddListButton = styled(Button)`
   color: ${getColor('addItemButtonColor')};
-  height: ${getSpaceSet(8)};
-  width: ${getSpaceSet(30)};
-  font-weight: bold;
-  font-size: 25px;
-  padding: 0;
 `;
 
 const Ul = styled.ul`
@@ -106,4 +106,8 @@ const ArrowIcon = styled(ArrowRightSquare)`
   color: ${getLighterColor('text', 1)};
   min-width: 30px;
   height: 30px;
+`;
+
+const AddListIcon = styled(IconBase)`
+  height: 25px;
 `;

@@ -4,9 +4,12 @@ import { User } from './User';
 import { clearTokenCookie, setTokenCookie } from './utils/cookies';
 import { getAuthorizePageUrl } from './utils/url';
 
-export function useAuth(): AuthContext {
-  const { clientId, audience, user, setUser } = useContext(AuthContext);
+export function useAuth(): AuthHook {
+  const { clientId, audience, user, setUser, isFulfilled } = useContext(
+    AuthContext,
+  );
   const authWindowRef = useRef<Window | null>(null);
+  const onAuthSuccessRef = useRef<AuthorizeWithRedirect>();
 
   useEffect(() => {
     function handleMessage({ data }: AuthMessage) {
@@ -18,6 +21,10 @@ export function useAuth(): AuthContext {
         setUser(user);
         setTokenCookie(auth_token);
         authWindowRef.current.close();
+
+        if (onAuthSuccessRef.current) {
+          onAuthSuccessRef.current();
+        }
       }
     }
 
@@ -28,15 +35,19 @@ export function useAuth(): AuthContext {
     };
   }, [setUser]);
 
-  const authorizeWithRedirect = useCallback(() => {
-    if (!audience || !clientId) {
-      throw new Error('Audience and client id are required');
-    }
+  const authorizeWithRedirect = useCallback<AuthorizeWithRedirect>(
+    (options) => {
+      if (!audience || !clientId) {
+        throw new Error('Audience and client id are required');
+      }
 
-    authWindowRef.current = window.open(
-      getAuthorizePageUrl({ audience, clientId }),
-    );
-  }, [clientId, audience]);
+      onAuthSuccessRef.current = options?.onSuccess;
+      authWindowRef.current = window.open(
+        getAuthorizePageUrl({ audience, clientId }),
+      );
+    },
+    [clientId, audience],
+  );
 
   const logout = useCallback(() => {
     clearTokenCookie();
@@ -46,14 +57,18 @@ export function useAuth(): AuthContext {
   return {
     authorizeWithRedirect,
     user,
+    isFulfilled,
     logout,
   };
 }
 
-type AuthContext = {
-  authorizeWithRedirect: () => void;
+type AuthorizeWithRedirect = (options?: { onSuccess: () => void }) => void;
+
+type AuthHook = {
+  authorizeWithRedirect: AuthorizeWithRedirect;
   logout: () => void;
   user: User | null;
+  isFulfilled: boolean;
 };
 
 type AuthMessage = MessageEvent<{
