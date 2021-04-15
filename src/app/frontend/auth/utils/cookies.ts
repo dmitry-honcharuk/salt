@@ -2,7 +2,8 @@ import Cookies from 'js-cookie';
 import { COOKIE_NAME } from '../constants';
 
 export function setTokenCookie(token: string): void {
-  Cookies.set(COOKIE_NAME, token);
+  // A year
+  Cookies.set(COOKIE_NAME, token, { expires: 365 });
 }
 
 export function clearTokenCookie(): void {
