@@ -5,3 +5,4 @@ export const NEXT_PUBLIC_SOCKET_URL = process.env
   .NEXT_PUBLIC_SOCKET_URL as string;
 export const NEXT_PUBLIC_AUTH_CLIENT_ID = process.env
   .NEXT_PUBLIC_AUTH_CLIENT_ID as string;
+export const SHARE_TOKEN_SECRET = process.env.SHARE_TOKEN_SECRET as string;
