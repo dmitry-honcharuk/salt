@@ -9,6 +9,8 @@ import { Layout } from '../common/Layout';
 import { usePromise } from '../hooks/usePromise';
 import { createList } from '../services/api/createList';
 import { getColor, getSpaceSet } from '../theme-selectors';
+import {put} from "../../implementations/services/request-client";
+import {participateInList} from "../services/api/participateInList";
 
 type Form = {
   name?: string;
@@ -31,8 +33,8 @@ export const NewListScreen: FC = () => {
       return;
     }
 
-    // Become participant by token
-    console.log('Become participant by token');
+    const {listId} = await participateInList(token);
+    await push(`/${listId}`);
   };
 
   return (
