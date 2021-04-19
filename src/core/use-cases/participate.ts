@@ -1,16 +1,17 @@
 import { CoreError } from '../errors/CoreError';
 import { ListRepository } from '../interfaces/repositories/ListRepository';
+import { verifyShareToken } from '../utils/jwt';
 
-export function shareListUsecaseFactory({ listRepository }: Dependencies) {
-  return async ({ listId, currentUserId }: Input): Promise<void> => {
+export function participateUsecaseFactory({ listRepository }: Dependencies) {
+  return async ({ token, currentUserId }: Input): Promise<string> => {
     if (!currentUserId) {
       throw new CoreError('Forbidden');
     }
 
-    if (!listId) {
-      throw new CoreError('list id required');
+    if (!token) {
+      throw new CoreError('token required');
     }
-
+    const { listId } = await verifyShareToken(token);
     const list = await listRepository.getListById(listId);
 
     if (!list) {
@@ -21,6 +22,8 @@ export function shareListUsecaseFactory({ listRepository }: Dependencies) {
       listId,
       participantId: currentUserId,
     });
+
+    return listId;
   };
 }
 
@@ -29,6 +32,6 @@ type Dependencies = {
 };
 
 type Input = {
-  listId?: string;
+  token?: string;
   currentUserId?: string;
 };
