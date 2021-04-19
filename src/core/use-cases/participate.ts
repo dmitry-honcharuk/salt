@@ -1,8 +1,8 @@
 import { CoreError } from '../errors/CoreError';
 import { ListRepository } from '../interfaces/repositories/ListRepository';
-import {verifyShareToken} from "../utils/jwt";
+import { verifyShareToken } from '../utils/jwt';
 
-export function participateListUsecaseFactory({ listRepository }: Dependencies) {
+export function participateUsecaseFactory({ listRepository }: Dependencies) {
   return async ({ token, currentUserId }: Input): Promise<string> => {
     if (!currentUserId) {
       throw new CoreError('Forbidden');

@@ -21,13 +21,13 @@ export function signShareToken(payload: Payload): Promise<string> {
 
 export function verifyShareToken(token: string): Promise<Payload> {
   return new Promise<Payload>((resolve, reject) => {
-    verify(token, SHARE_TOKEN_SECRET ,(err, payload) => {
+    verify(token, SHARE_TOKEN_SECRET, (err, payload) => {
       if (err) {
         reject(err);
         return;
       }
 
-      if(!payload) {
+      if (!payload) {
         reject(new Error('No payload was received'));
         return;
       }

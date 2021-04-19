@@ -8,9 +8,8 @@ import { BackLink } from '../common/BackLink';
 import { Layout } from '../common/Layout';
 import { usePromise } from '../hooks/usePromise';
 import { createList } from '../services/api/createList';
+import { participateInList } from '../services/api/participateInList';
 import { getColor, getSpaceSet } from '../theme-selectors';
-import {put} from "../../implementations/services/request-client";
-import {participateInList} from "../services/api/participateInList";
 
 type Form = {
   name?: string;
@@ -33,7 +32,7 @@ export const NewListScreen: FC = () => {
       return;
     }
 
-    const {listId} = await participateInList(token);
+    const { listId } = await participateInList(token);
     await push(`/${listId}`);
   };
 

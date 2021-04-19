@@ -1,6 +1,6 @@
 import { authorized, listRepository } from '../../../app/dependencies';
 import { createRoute } from '../../../app/utils/api/route';
-import { participateListUsecaseFactory } from '../../../core/use-cases/participate';
+import { participateUsecaseFactory } from '../../../core/use-cases/participate';
 
 export default createRoute()
   .use(authorized())
@@ -10,11 +10,10 @@ export default createRoute()
       user,
     } = req;
 
-
-    const participate = participateListUsecaseFactory({ listRepository });
+    const participate = participateUsecaseFactory({ listRepository });
     const listId = await participate({ token, currentUserId: user?.id });
 
     res.json({
-        listId,
+      listId,
     });
   });
