@@ -1,4 +1,3 @@
-import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
 import { DeleteForever } from '@styled-icons/material/DeleteForever';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
@@ -14,6 +13,7 @@ import Link from 'next/link';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
+import { BackLink } from '../common/BackLink';
 import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
@@ -48,11 +48,7 @@ export const ListScreen: FunctionComponent<Props> = ({
   return (
     <Layout>
       <Header>
-        <Link href='/'>
-          <BackLink href='/'>
-            <Arrow90degLeft height={24} />
-          </BackLink>
-        </Link>
+        <BackLink />
         <NameWrapper>
           <NameInput
             placeholder={getDisplayTime(createdAt)}
@@ -120,17 +116,6 @@ const Header = styled.header`
   margin-bottom: ${getSpaceSet(5)};
   display: flex;
   justify-content: space-between;
-`;
-
-const BackLink = styled.a`
-  border: 2px dashed ${getLighterColor('text', 2)};
-  color: ${getLighterColor('text', 2)};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: ${getSpaceSet(9)};
-  width: ${getSpaceSet(9)};
-  cursor: pointer;
 `;
 
 const NameWrapper = styled.div`
