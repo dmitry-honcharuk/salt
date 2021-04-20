@@ -1,3 +1,4 @@
+import { AuthProvider } from '@ficdev/auth-react';
 import { SocketContext } from 'app/frontend/sockets/context';
 import { theme } from 'app/frontend/theme';
 import { getColor } from 'app/frontend/theme-selectors';
@@ -6,16 +7,17 @@ import Head from 'next/head';
 import { io } from 'socket.io-client';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import {
+  AUTH_BASE_URL,
   NEXT_PUBLIC_AUTH_CLIENT_ID,
   NEXT_PUBLIC_SOCKET_URL,
 } from '../app/config/env';
-import { AuthProvider } from '../app/frontend/auth';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider
       clientId={NEXT_PUBLIC_AUTH_CLIENT_ID}
+      urlBase={AUTH_BASE_URL}
       audience='http://dho.local:3000'
     >
       <SocketContext.Provider value={{ socket: io(NEXT_PUBLIC_SOCKET_URL) }}>

@@ -1,10 +1,10 @@
+import { useAuth } from '@ficdev/auth-react';
 import { Logout } from '@styled-icons/material/Logout';
 import { MoreVert as MoreIcon } from '@styled-icons/material/MoreVert';
 import { useRouter } from 'next/router';
 import { FC, ReactNode } from 'react';
 import PopupBase from 'reactjs-popup';
 import styled from 'styled-components';
-import { useAuth } from '../auth';
 import { getColor, getLighterColor, getSpacePx } from '../theme-selectors';
 import { BaseButton } from './BaseButton';
 import { ButtonBase } from './ButtonBase';

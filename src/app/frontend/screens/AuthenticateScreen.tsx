@@ -1,10 +1,10 @@
+import { useAuth } from '@ficdev/auth-react';
 import { BaseButton } from 'app/frontend/common/BaseButton';
 import { H5 } from 'app/frontend/common/Typography';
 import { getSpace } from 'app/frontend/theme-selectors';
 import { useRouter } from 'next/router';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
-import { useAuth } from '../auth';
 
 export const AuthenticateScreen: FunctionComponent = () => {
   const { authorizeWithRedirect } = useAuth();

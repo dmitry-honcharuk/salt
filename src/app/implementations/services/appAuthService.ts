@@ -1,7 +1,8 @@
-import { authServiceFactory, cookieServiceFactory } from 'app/backend/auth';
+import { authServiceFactory, cookieServiceFactory } from '@ficdev/auth-express';
 import { ForbiddenError } from 'core/errors/ForbiddenError';
 import { AuthService } from 'core/interfaces/services/AuthService';
 import { IncomingMessage, ServerResponse } from 'http';
+import { AUTH_BASE_URL } from '../../config/env';
 
 interface Settings {
   clientId: string;
@@ -10,12 +11,15 @@ interface Settings {
 export function buildAppAuthServiceFactory({
   clientId,
 }: Settings): ServiceFactory {
-  const authService = authServiceFactory({ clientId });
+  const authService = authServiceFactory({
+    clientId,
+    authUrlBase: AUTH_BASE_URL,
+  });
 
   return (req: IncomingMessage, res: ServerResponse): AuthService => ({
     async getCurrentUser() {
-      const cookieService = cookieServiceFactory(req, res);
-      const token = cookieService.getToken();
+      const cookieService = cookieServiceFactory({});
+      const token = cookieService.getToken(req, res);
 
       if (!token) {
         throw new ForbiddenError();
