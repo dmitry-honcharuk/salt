@@ -1,6 +1,6 @@
 import { CoreError } from '../errors/CoreError';
 import { ListRepository } from '../interfaces/repositories/ListRepository';
-import { verifyShareToken } from '../utils/jwt';
+import { verifyShareToken } from '../utils/share-token';
 
 export function participateUsecaseFactory({ listRepository }: Dependencies) {
   return async ({ token, currentUserId }: Input): Promise<string> => {
