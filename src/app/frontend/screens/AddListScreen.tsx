@@ -25,8 +25,8 @@ type Form = {
 };
 
 enum State {
-  NewList = 'NewList',
-  ExistingList = 'ExistingList',
+  NewList,
+  ExistingList,
 }
 
 export const AddListScreen: FC = () => {
@@ -76,8 +76,7 @@ export const AddListScreen: FC = () => {
           <Hint>
             Specify a name for your new list
             <br />
-            or paste a code to participate in
-            someone else's list
+            or paste a code to participate in someone else's list
           </Hint>
           <Input
             type='text'
