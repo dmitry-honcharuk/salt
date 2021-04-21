@@ -9,6 +9,8 @@
     "validate-env": "node src/app/config/validate-env.js"
   },
   "dependencies": {
+    "@ficdev/auth-express": "^0.0.4",
+    "@ficdev/auth-react": "^0.0.3",
     "@styled-icons/bootstrap": "^10.29.0",
     "@styled-icons/material": "^10.28.0",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
