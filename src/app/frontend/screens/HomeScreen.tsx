@@ -29,7 +29,7 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
             <Link href='/new'>
               <AddListButton href='/new' as={LinkBase}>
                 <AddListIcon as={PlaylistAdd} />
-                <span>create list</span>
+                <span>add list</span>
               </AddListButton>
             </Link>,
           ]}

@@ -1,6 +1,6 @@
 import { CoreError } from '../errors/CoreError';
 import { ListRepository } from '../interfaces/repositories/ListRepository';
-import { signShareToken } from '../utils/jwt';
+import { signShareToken } from '../utils/share-token';
 
 export function generateShareTokenFactory({ listRepository }: Dependencies) {
   return async ({ currentUserId, listId }: Input): Promise<string> => {

@@ -1,5 +1,5 @@
-import { NewListScreen } from '../app/frontend/screens/NewListScreen';
+import { AddListScreen } from '../app/frontend/screens/AddListScreen';
 
 export default function NewList() {
-  return <NewListScreen />;
+  return <AddListScreen />;
 }
