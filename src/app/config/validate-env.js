@@ -10,7 +10,8 @@ const { error } = Joi.object({
   NEXT_PUBLIC_SOCKET_URL: Joi.string().required(),
   NEXT_PUBLIC_AUTH_CLIENT_ID: Joi.string().required(),
   SHARE_TOKEN_SECRET: Joi.string().required(),
-  AUTH_BASE_URL: Joi.string().required(),
+  NEXT_PUBLIC_AUTH_BASE_URL: Joi.string().required(),
+  NEXT_PUBLIC_AUDIENCE: Joi.string().required(),
 }).validate(process.env, { allowUnknown: true });
 
 if (error) {

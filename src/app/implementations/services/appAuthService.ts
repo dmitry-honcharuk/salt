@@ -2,7 +2,7 @@ import { authServiceFactory, cookieServiceFactory } from '@ficdev/auth-express';
 import { ForbiddenError } from 'core/errors/ForbiddenError';
 import { AuthService } from 'core/interfaces/services/AuthService';
 import { IncomingMessage, ServerResponse } from 'http';
-import { AUTH_BASE_URL } from '../../config/env';
+import { NEXT_PUBLIC_AUTH_BASE_URL } from '../../config/env';
 
 interface Settings {
   clientId: string;
@@ -13,7 +13,7 @@ export function buildAppAuthServiceFactory({
 }: Settings): ServiceFactory {
   const authService = authServiceFactory({
     clientId,
-    authUrlBase: AUTH_BASE_URL,
+    authUrlBase: NEXT_PUBLIC_AUTH_BASE_URL,
   });
 
   return (req: IncomingMessage, res: ServerResponse): AuthService => ({

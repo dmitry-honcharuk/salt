@@ -7,7 +7,8 @@ import Head from 'next/head';
 import { io } from 'socket.io-client';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import {
-  AUTH_BASE_URL,
+  NEXT_PUBLIC_AUDIENCE,
+  NEXT_PUBLIC_AUTH_BASE_URL,
   NEXT_PUBLIC_AUTH_CLIENT_ID,
   NEXT_PUBLIC_SOCKET_URL,
 } from '../app/config/env';
@@ -17,8 +18,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider
       clientId={NEXT_PUBLIC_AUTH_CLIENT_ID}
-      urlBase={AUTH_BASE_URL}
-      audience='http://dho.local:3000'
+      urlBase={NEXT_PUBLIC_AUTH_BASE_URL}
+      audience={NEXT_PUBLIC_AUDIENCE}
     >
       <SocketContext.Provider value={{ socket: io(NEXT_PUBLIC_SOCKET_URL) }}>
         <Head>
