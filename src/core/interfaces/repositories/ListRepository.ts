@@ -8,7 +8,7 @@ export interface ListRepository {
     createdAt: number;
     creator: UserEntity;
   }): Promise<ListEntity>;
-  getLists(options: { creator: UserEntity }): Promise<ListEntity[]>;
+  getUserLists(options: { user: UserEntity }): Promise<ListEntity[]>;
   addItem(options: AddItem): Promise<ItemEntity | null>;
   getListById(id: string): Promise<ListEntity | null>;
   updateItem(

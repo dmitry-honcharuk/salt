@@ -32,19 +32,21 @@ export function buildMongoListRepository(): ListRepository {
         id: entry.insertedId.toHexString(),
       };
     },
-    getLists: async ({ creator }) => {
+    getUserLists: async ({ user }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const cursor = listCollection.find({
-        creator: creator.id,
+        $or : [
+            {creator: user.id},
+            {participants: { id: user.id }}]
       });
 
       return cursor
         .map(({ _id, ...list }) => ({
           ...list,
-          creator,
+          creator: { id: list.creator},
           id: _id.toHexString(),
         }))
         .toArray();

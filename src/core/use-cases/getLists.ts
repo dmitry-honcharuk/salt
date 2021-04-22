@@ -9,8 +9,8 @@ export function getListsUsecaseFactory({ listRepository }: Deps) {
       throw new ForbiddenError();
     }
 
-    return listRepository.getLists({
-      creator,
+    return listRepository.getUserLists({
+      user: creator,
     });
   };
 }
