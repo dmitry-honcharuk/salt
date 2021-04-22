@@ -21,6 +21,7 @@ export function participateUsecaseFactory({ listRepository }: Dependencies) {
     await listRepository.addParticipant({
       listId,
       participantId: currentUserId,
+      joinedAt: Date.now(),
     });
 
     return listId;

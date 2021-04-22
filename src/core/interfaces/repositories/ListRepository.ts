@@ -29,6 +29,7 @@ export interface ListRepository {
   addParticipant(options: {
     listId: string;
     participantId: string;
+    joinedAt: number;
   }): Promise<void>;
 }
 
