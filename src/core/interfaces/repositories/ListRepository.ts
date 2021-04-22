@@ -8,11 +8,11 @@ export interface ListRepository {
     createdAt: number;
     creator: UserEntity;
   }): Promise<ListEntity>;
-  getLists(options: { creator: UserEntity }): Promise<ListEntity[]>;
-  addItem(options: AddItem): Promise<ItemEntity | null>;
+  getUserLists(options: { user: UserEntity }): Promise<ListEntity[]>;
+  addItemToList(listId: string, options: AddItem): Promise<ItemEntity | null>;
   getListById(id: string): Promise<ListEntity | null>;
   updateItem(
-    options: { listId: string; itemId: string; creator: UserEntity },
+    options: { listId: string; itemId: string },
     item: Omit<ItemEntity, 'id'>,
   ): Promise<null | ItemEntity>;
   updateListName(options: {
@@ -20,11 +20,7 @@ export interface ListRepository {
     name: string;
     creator: UserEntity;
   }): Promise<null | ListEntity>;
-  removeItem(options: {
-    listId: string;
-    itemId: string;
-    creator: UserEntity;
-  }): Promise<void>;
+  removeItem(options: { listId: string; itemId: string }): Promise<void>;
   removeList(listId: string, options: { creator: UserEntity }): Promise<void>;
   addParticipant(options: {
     listId: string;
@@ -33,7 +29,4 @@ export interface ListRepository {
   }): Promise<void>;
 }
 
-type AddItem = Omit<ItemEntity, 'id'> & {
-  listId: string;
-  creator: UserEntity;
-};
+type AddItem = Omit<ItemEntity, 'id'>;

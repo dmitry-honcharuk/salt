@@ -27,7 +27,7 @@ async function updateContent(req: NextApiRequest, res: NextApiResponse) {
     listId,
     itemId,
     content,
-    creator: user,
+    user,
   });
 
   res.json(updatedItem);
@@ -45,7 +45,7 @@ async function removeItem(req: NextApiRequest, res: NextApiResponse) {
   await removeItemUsecaseFactory({ listRepository })({
     listId,
     itemId,
-    creator: user,
+    user: user,
   });
 
   res.json({});

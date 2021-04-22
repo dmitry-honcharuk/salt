@@ -1,10 +1,11 @@
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
 export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
-  return async ({ listId, itemId, creator }: Input): Promise<void> => {
-    if (!creator) {
+  return async ({ listId, itemId, user }: Input): Promise<void> => {
+    if (!user) {
       throw new CoreError('Forbidden');
     }
 
@@ -22,7 +23,7 @@ export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError(`No such list found. (${listId})`);
     }
 
-    if (creator?.id !== list.creator.id) {
+    if (!isCreatorOrParticipant(user, list)) {
       throw new CoreError('Forbidden');
     }
 
@@ -32,7 +33,7 @@ export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError(`No such item found. (${itemId})`);
     }
 
-    await listRepository.removeItem({ listId, itemId, creator });
+    await listRepository.removeItem({ listId, itemId });
   };
 }
 
@@ -42,5 +43,5 @@ type Dependencies = {
 type Input = {
   listId?: string;
   itemId?: string;
-  creator?: UserEntity | null;
+  user?: UserEntity | null;
 };

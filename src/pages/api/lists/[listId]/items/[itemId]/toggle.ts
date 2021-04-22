@@ -18,7 +18,7 @@ async function toggleItem(req: NextApiRequest, res: NextApiResponse) {
     listRepository,
   });
 
-  const updatedItem = await updateItem({ listId, itemId, creator: user });
+  const updatedItem = await updateItem({ listId, itemId, user });
 
   res.json(updatedItem);
 }

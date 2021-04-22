@@ -1,3 +1,4 @@
+import { useAuth } from '@ficdev/auth-react';
 import { format } from 'date-fns';
 import { FC, useState } from 'react';
 import styled from 'styled-components';
@@ -7,8 +8,11 @@ import { getShareToken } from '../services/api/getShareToken';
 export const ListSettingsScreen: FC<{ list: ListEntity }> = ({ list }) => {
   const [token, setToken] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const { user: currentUser } = useAuth();
 
   const { participants = [], creator } = list;
+
+  const isCreator = creator.id === currentUser?.id;
 
   const handleClick = async () => {
     setLoading(true);
@@ -22,12 +26,16 @@ export const ListSettingsScreen: FC<{ list: ListEntity }> = ({ list }) => {
   return (
     <>
       <h1>Settings</h1>
-      <h2>Share</h2>
-      <button onClick={handleClick} disabled={loading}>
-        click
-      </button>
-      <div>{token}</div>
-      <hr />
+      {isCreator && (
+        <>
+          <h2>Share</h2>
+          <button onClick={handleClick} disabled={loading}>
+            click
+          </button>
+          <div>{token}</div>
+          <hr />
+        </>
+      )}
       <Table>
         <thead>
           <tr>

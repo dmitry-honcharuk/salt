@@ -32,30 +32,29 @@ export function buildMongoListRepository(): ListRepository {
         id: entry.insertedId.toHexString(),
       };
     },
-    getLists: async ({ creator }) => {
+    getUserLists: async ({ user }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const cursor = listCollection.find({
-        creator: creator.id,
+        $or: [{ creator: user.id }, { participants: { id: user.id } }],
       });
 
       return cursor
         .map(({ _id, ...list }) => ({
           ...list,
-          creator,
+          creator: { id: list.creator },
           id: _id.toHexString(),
         }))
         .toArray();
     },
-    addItem: async ({ listId, content, done, creator, createdAt }) => {
+    addItemToList: async (listId, { content, done, createdAt }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -104,13 +103,12 @@ export function buildMongoListRepository(): ListRepository {
         },
       };
     },
-    updateItem: async ({ listId, itemId, creator }, itemFields) => {
+    updateItem: async ({ listId, itemId }, itemFields) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -156,13 +154,12 @@ export function buildMongoListRepository(): ListRepository {
 
       return { id: _id.toHexString(), ...list, name, creator };
     },
-    removeItem: async ({ listId, itemId, creator }) => {
+    removeItem: async ({ listId, itemId }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);

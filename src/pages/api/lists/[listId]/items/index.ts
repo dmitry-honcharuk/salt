@@ -17,7 +17,7 @@ async function createItem(req: NextApiRequest, res: NextApiResponse) {
   const addItem = addItemUsecaseFactory({ listRepository });
 
   const item = await addItem({
-    creator: user,
+    user: user,
     listId,
     content,
     done,

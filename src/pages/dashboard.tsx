@@ -27,7 +27,7 @@ export const getServerSideProps: GetServerSideProps<{
     });
 
     const lists = await getLists({
-      creator: await authService.getCurrentUser(),
+      user: await authService.getCurrentUser(),
     });
 
     return {

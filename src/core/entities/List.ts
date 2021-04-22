@@ -10,3 +10,14 @@ export interface ListEntity {
   createdAt: number;
   participants?: ParticipantEntity[];
 }
+
+export function isCreatorOrParticipant(
+  user: UserEntity,
+  list: ListEntity,
+): boolean {
+  const isCreator = user?.id === list?.creator.id;
+  const isParticipant =
+    list?.participants?.some(({ id }) => id === user.id) ?? false;
+
+  return isCreator || isParticipant;
+}
