@@ -17,6 +17,7 @@ import { BackLink } from '../common/BackLink';
 import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
+import {useAuth} from "@ficdev/auth-react";
 
 type Props = {
   listId: string;
@@ -29,6 +30,7 @@ type Props = {
   name?: string;
   setName: (name: string) => void;
   createdAt: number;
+  creatorId: string;
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
@@ -42,10 +44,33 @@ export const ListScreen: FunctionComponent<Props> = ({
   setName,
   name,
   createdAt,
+  creatorId
 }) => {
   const [isDeleting, setDeleting] = useState(false);
-
-  return (
+  const { user } = useAuth();
+  const isCreator = creatorId === user?.id;
+    const settingsLink = <Link href={`/${listId}/settings`}>
+        <Button href={`/${listId}/settings`} as={LinkBase}>
+            <Icon as={Tune}/>
+            <span>settings</span>
+        </Button>
+    </Link>;
+    const deleteButton = <DeleteButton
+        disabled={isDeleting}
+        color='secondary'
+        onClick={async () => {
+            setDeleting(true);
+            await removeList();
+        }}
+    >
+        <Icon as={DeleteForever} />
+        <span>remove</span>
+    </DeleteButton>;
+    const actions = [
+      settingsLink,
+            ...(isCreator ? [deleteButton] : []) ,
+    ];
+    return (
     <Layout>
       <Header>
         <BackLink />
@@ -57,25 +82,7 @@ export const ListScreen: FunctionComponent<Props> = ({
           />
         </NameWrapper>
         <Actions
-          items={[
-            <Link href={`/${listId}/settings`}>
-              <Button href={`/${listId}/settings`} as={LinkBase}>
-                <Icon as={Tune} />
-                <span>settings</span>
-              </Button>
-            </Link>,
-            <DeleteButton
-              disabled={isDeleting}
-              color='secondary'
-              onClick={async () => {
-                setDeleting(true);
-                await removeList();
-              }}
-            >
-              <Icon as={DeleteForever} />
-              <span>remove</span>
-            </DeleteButton>,
-          ]}
+          items={actions}
         />
       </Header>
       <NewItemRow onCreate={addItem} />

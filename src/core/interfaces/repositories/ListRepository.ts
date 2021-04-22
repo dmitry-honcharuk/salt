@@ -12,7 +12,7 @@ export interface ListRepository {
   addItemToList(listId: string, options: AddItem): Promise<ItemEntity | null>;
   getListById(id: string): Promise<ListEntity | null>;
   updateItem(
-    options: { listId: string; itemId: string; creator: UserEntity },
+    options: { listId: string; itemId: string },
     item: Omit<ItemEntity, 'id'>,
   ): Promise<null | ItemEntity>;
   updateListName(options: {
@@ -23,7 +23,6 @@ export interface ListRepository {
   removeItem(options: {
     listId: string;
     itemId: string;
-    creator: UserEntity;
   }): Promise<void>;
   removeList(listId: string, options: { creator: UserEntity }): Promise<void>;
   addParticipant(options: {

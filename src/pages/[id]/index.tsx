@@ -295,6 +295,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
 
   return (
     <ListScreen
+      creatorId={rawList.creator.id}
       listId={rawList.id}
       name={name}
       createdAt={rawList.createdAt}

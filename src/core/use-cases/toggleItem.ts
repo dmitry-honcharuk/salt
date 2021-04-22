@@ -4,10 +4,11 @@ import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
 import omit from 'lodash/omit';
 import { UserEntity } from '../entities/User';
+import {isCreatorOrParticipant} from "../entities/List";
 
 export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
-  return async ({ listId, itemId, creator }: Input): Promise<ItemEntity> => {
-    if (!creator) {
+  return async ({ listId, itemId, user }: Input): Promise<ItemEntity> => {
+    if (!user) {
       throw new CoreError('Forbidden');
     }
 
@@ -25,7 +26,7 @@ export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError(`No such list found. (${listId})`);
     }
 
-    if (creator?.id !== list.creator.id) {
+    if (!isCreatorOrParticipant(user, list)) {
       throw new CoreError('Forbidden');
     }
 
@@ -40,7 +41,7 @@ export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
     });
 
     const result = await listRepository.updateItem(
-      { listId, itemId, creator },
+      { listId, itemId },
       omit(updatedItem, ['id']),
     );
 
@@ -58,5 +59,5 @@ type Dependencies = {
 type Input = {
   listId?: string;
   itemId?: string;
-  creator?: UserEntity | null;
+  user?: UserEntity | null;
 };

@@ -103,13 +103,12 @@ export function buildMongoListRepository(): ListRepository {
         },
       };
     },
-    updateItem: async ({ listId, itemId, creator }, itemFields) => {
+    updateItem: async ({ listId, itemId }, itemFields) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
-        _id: new ObjectId(listId),
-        creator: creator.id,
+        _id: new ObjectId(listId)
       };
 
       const list = await listCollection.findOne(filter);
@@ -155,13 +154,12 @@ export function buildMongoListRepository(): ListRepository {
 
       return { id: _id.toHexString(), ...list, name, creator };
     },
-    removeItem: async ({ listId, itemId, creator }) => {
+    removeItem: async ({ listId, itemId }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
