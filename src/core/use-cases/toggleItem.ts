@@ -3,8 +3,8 @@ import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
 import omit from 'lodash/omit';
+import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
-import {isCreatorOrParticipant} from "../entities/List";
 
 export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
   return async ({ listId, itemId, user }: Input): Promise<ItemEntity> => {

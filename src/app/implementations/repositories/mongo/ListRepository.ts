@@ -108,7 +108,7 @@ export function buildMongoListRepository(): ListRepository {
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
-        _id: new ObjectId(listId)
+        _id: new ObjectId(listId),
       };
 
       const list = await listCollection.findOne(filter);

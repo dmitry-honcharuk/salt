@@ -9,9 +9,7 @@ export function getListsUsecaseFactory({ listRepository }: Deps) {
       throw new ForbiddenError();
     }
 
-    return listRepository.getUserLists({
-      user: user,
-    });
+    return listRepository.getUserLists({ user });
   };
 }
 

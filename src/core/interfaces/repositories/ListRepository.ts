@@ -20,10 +20,7 @@ export interface ListRepository {
     name: string;
     creator: UserEntity;
   }): Promise<null | ListEntity>;
-  removeItem(options: {
-    listId: string;
-    itemId: string;
-  }): Promise<void>;
+  removeItem(options: { listId: string; itemId: string }): Promise<void>;
   removeList(listId: string, options: { creator: UserEntity }): Promise<void>;
   addParticipant(options: {
     listId: string;

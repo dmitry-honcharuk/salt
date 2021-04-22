@@ -1,3 +1,4 @@
+import { useAuth } from '@ficdev/auth-react';
 import { DeleteForever } from '@styled-icons/material/DeleteForever';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
@@ -17,7 +18,6 @@ import { BackLink } from '../common/BackLink';
 import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
-import {useAuth} from "@ficdev/auth-react";
 
 type Props = {
   listId: string;
@@ -44,33 +44,37 @@ export const ListScreen: FunctionComponent<Props> = ({
   setName,
   name,
   createdAt,
-  creatorId
+  creatorId,
 }) => {
   const [isDeleting, setDeleting] = useState(false);
   const { user } = useAuth();
+
   const isCreator = creatorId === user?.id;
-    const settingsLink = <Link href={`/${listId}/settings`}>
-        <Button href={`/${listId}/settings`} as={LinkBase}>
-            <Icon as={Tune}/>
-            <span>settings</span>
-        </Button>
-    </Link>;
-    const deleteButton = <DeleteButton
-        disabled={isDeleting}
-        color='secondary'
-        onClick={async () => {
-            setDeleting(true);
-            await removeList();
-        }}
+
+  const settingsLink = (
+    <Link href={`/${listId}/settings`}>
+      <Button href={`/${listId}/settings`} as={LinkBase}>
+        <Icon as={Tune} />
+        <span>settings</span>
+      </Button>
+    </Link>
+  );
+
+  const deleteButton = (
+    <DeleteButton
+      disabled={isDeleting}
+      color='secondary'
+      onClick={async () => {
+        setDeleting(true);
+        await removeList();
+      }}
     >
-        <Icon as={DeleteForever} />
-        <span>remove</span>
-    </DeleteButton>;
-    const actions = [
-      settingsLink,
-            ...(isCreator ? [deleteButton] : []) ,
-    ];
-    return (
+      <Icon as={DeleteForever} />
+      <span>remove</span>
+    </DeleteButton>
+  );
+
+  return (
     <Layout>
       <Header>
         <BackLink />
@@ -81,9 +85,7 @@ export const ListScreen: FunctionComponent<Props> = ({
             onChange={({ target }) => setName(target.value)}
           />
         </NameWrapper>
-        <Actions
-          items={actions}
-        />
+        <Actions items={[settingsLink, ...(isCreator ? [deleteButton] : [])]} />
       </Header>
       <NewItemRow onCreate={addItem} />
       <Ul>
