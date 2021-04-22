@@ -4,13 +4,13 @@ import { UserEntity } from '../entities/User';
 import { ForbiddenError } from '../errors/ForbiddenError';
 
 export function getListsUsecaseFactory({ listRepository }: Deps) {
-  return async ({ creator }: Input): Promise<ListEntity[]> => {
-    if (!creator) {
+  return async ({ user }: Input): Promise<ListEntity[]> => {
+    if (!user) {
       throw new ForbiddenError();
     }
 
     return listRepository.getUserLists({
-      user: creator,
+      user: user,
     });
   };
 }
@@ -20,5 +20,5 @@ type Deps = {
 };
 
 type Input = {
-  creator?: UserEntity | null;
+  user?: UserEntity | null;
 };

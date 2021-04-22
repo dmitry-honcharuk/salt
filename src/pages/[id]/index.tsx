@@ -335,7 +335,7 @@ export const getServerSideProps: GetServerSideProps<{
       listRepository,
     })({
       listId: id,
-      creator: currentUser,
+      user: currentUser,
     });
 
     if (!list) {

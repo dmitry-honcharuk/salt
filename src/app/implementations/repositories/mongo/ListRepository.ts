@@ -38,26 +38,23 @@ export function buildMongoListRepository(): ListRepository {
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const cursor = listCollection.find({
-        $or : [
-            {creator: user.id},
-            {participants: { id: user.id }}]
+        $or: [{ creator: user.id }, { participants: { id: user.id } }],
       });
 
       return cursor
         .map(({ _id, ...list }) => ({
           ...list,
-          creator: { id: list.creator},
+          creator: { id: list.creator },
           id: _id.toHexString(),
         }))
         .toArray();
     },
-    addItem: async ({ listId, content, done, creator, createdAt }) => {
+    addItemToList: async (listId, { content, done, createdAt }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
