@@ -1,8 +1,8 @@
-import { UserEntity } from 'core/entities/User';
+import { User } from '@ficdev/auth-express';
 import 'styled-components';
 
 declare module 'next' {
   interface NextApiRequest {
-    user?: UserEntity;
+    user?: User;
   }
 }

@@ -1,10 +1,11 @@
+import { UserEntity } from '../entities/User';
 import { CoreError } from '../errors/CoreError';
 import { ListRepository } from '../interfaces/repositories/ListRepository';
 import { verifyShareToken } from '../utils/share-token';
 
 export function participateUsecaseFactory({ listRepository }: Dependencies) {
-  return async ({ token, currentUserId }: Input): Promise<string> => {
-    if (!currentUserId) {
+  return async ({ token, currentUser }: Input): Promise<string> => {
+    if (!currentUser) {
       throw new CoreError('Forbidden');
     }
 
@@ -20,8 +21,10 @@ export function participateUsecaseFactory({ listRepository }: Dependencies) {
 
     await listRepository.addParticipant({
       listId,
-      participantId: currentUserId,
-      joinedAt: Date.now(),
+      participant: {
+        ...currentUser,
+        joinedAt: Date.now(),
+      },
     });
 
     return listId;
@@ -34,5 +37,5 @@ type Dependencies = {
 
 type Input = {
   token?: string;
-  currentUserId?: string;
+  currentUser?: UserEntity;
 };

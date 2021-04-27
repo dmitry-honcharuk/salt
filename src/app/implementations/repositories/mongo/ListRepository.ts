@@ -1,9 +1,11 @@
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
-import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import {
+  ListRepository,
+  ParticipantToAdd,
+} from 'core/interfaces/repositories/ListRepository';
 import uniqueBy from 'lodash/uniqBy';
 import { ObjectId, WithId } from 'mongodb';
-import { ParticipantEntity } from '../../../../core/entities/Participant';
 import { getDatabase } from './mongo.client';
 
 type ListSchema = Omit<ListEntity, 'id' | 'creator'> & {
@@ -186,8 +188,7 @@ export function buildMongoListRepository(): ListRepository {
     },
     addParticipant: async (options: {
       listId: string;
-      participantId: string;
-      joinedAt: number;
+      participant: ParticipantToAdd;
     }): Promise<void> => {
       const db = await getDatabase();
 
@@ -203,16 +204,11 @@ export function buildMongoListRepository(): ListRepository {
         return;
       }
 
-      const participant: ParticipantEntity = {
-        id: options.participantId,
-        joinedAt: options.joinedAt,
-      };
-
       const participants = list.participants ?? [];
 
       await listCollection.updateOne(filter, {
         $set: {
-          participants: uniqueBy([...participants, participant], 'id'),
+          participants: uniqueBy([...participants, options.participant], 'id'),
         },
       });
     },

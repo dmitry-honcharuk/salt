@@ -890,18 +890,18 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@ficdev/auth-express@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@ficdev/auth-express/-/auth-express-0.0.4.tgz#0919421638c140e038c112c92aba3861dd147221"
-  integrity sha512-DBs+rzqJ9VBM7AJU0emMnk04U5h46gGzhZuibRrjs6SrODGIM18pt87WXUMfFy2wp2v1I73m0fH/bEn8pV0HBQ==
+"@ficdev/auth-express@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@ficdev/auth-express/-/auth-express-0.0.5.tgz#26b2fa2bbcabec84d64cf6d48a9ef602bbc694c8"
+  integrity sha512-eGzEIkEylqbhpUzpNGdrJVKQRNhiA04l1gPKIGLxer+VIwp7TYoEGAeiFMGsuK4u6K6THISz06A0nt2r/NPlkw==
   dependencies:
     cookies "^0.8.0"
     node-fetch "^2.6.1"
 
-"@ficdev/auth-react@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@ficdev/auth-react/-/auth-react-0.0.3.tgz#84a2083fc322ceda1b2a5c27483c973da91e7db4"
-  integrity sha512-Na2Pc9vTvpF7hHkdBznJJ6HQJmxQ0MrLjQwV49XHYlsrpggtaszK/p0Kw3i9Y8K9Uxn9hXm5AHqSIQlJ8DpBTg==
+"@ficdev/auth-react@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@ficdev/auth-react/-/auth-react-0.0.4.tgz#48e7ad827834bb5108ca06c86b668cdf26b530e4"
+  integrity sha512-5sAA3uPTom+gYUhy7MSZ+Xs3g4CCzktZAjj7fzsYdYUiy1fEnTGXmkN+JGNTSM20E/GHFUVkJi2zHrbtqYPw7A==
   dependencies:
     js-cookie "^2.2.1"
     query-string "^7.0.0"
