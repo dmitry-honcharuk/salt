@@ -11,7 +11,7 @@ export default createRoute()
     } = req;
 
     const participate = participateUsecaseFactory({ listRepository });
-    const listId = await participate({ token, currentUserId: user?.id });
+    const listId = await participate({ token, currentUser: user });
 
     res.json({
       listId,
