@@ -4,10 +4,14 @@ import { FC } from 'react';
 import styled from 'styled-components';
 import { getLighterColor, getSpaceSet } from '../theme-selectors';
 
-export const BackLink: FC = () => {
+type Props = {
+  href?: string;
+};
+
+export const BackLink: FC<Props> = ({ href = '/' }) => {
   return (
-    <Link href='/'>
-      <StyledBackLink href='/'>
+    <Link href={href}>
+      <StyledBackLink href={href}>
         <Arrow90degLeft height={24} />
       </StyledBackLink>
     </Link>

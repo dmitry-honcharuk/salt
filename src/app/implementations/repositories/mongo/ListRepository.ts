@@ -8,9 +8,7 @@ import uniqueBy from 'lodash/uniqBy';
 import { ObjectId, WithId } from 'mongodb';
 import { getDatabase } from './mongo.client';
 
-type ListSchema = Omit<ListEntity, 'id' | 'creator'> & {
-  creator: string;
-};
+type ListSchema = Omit<ListEntity, 'id'>;
 
 export function buildMongoListRepository(): ListRepository {
   return {
@@ -21,8 +19,8 @@ export function buildMongoListRepository(): ListRepository {
 
       const list: ListSchema = {
         name,
+        creator,
         items: [],
-        creator: creator.id,
         createdAt,
       };
 
@@ -40,13 +38,12 @@ export function buildMongoListRepository(): ListRepository {
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const cursor = listCollection.find({
-        $or: [{ creator: user.id }, { participants: { id: user.id } }],
+        $or: [{ 'creator.id': user.id }, { 'participants.id': user.id }],
       });
 
       return cursor
         .map(({ _id, ...list }) => ({
           ...list,
-          creator: { id: list.creator },
           id: _id.toHexString(),
         }))
         .toArray();
@@ -100,9 +97,6 @@ export function buildMongoListRepository(): ListRepository {
       return {
         ...fields,
         id: _id.toHexString(),
-        creator: {
-          id: list.creator,
-        },
       };
     },
     updateItem: async ({ listId, itemId }, itemFields) => {
@@ -143,7 +137,7 @@ export function buildMongoListRepository(): ListRepository {
       const { value } = await listCollection.findOneAndUpdate(
         {
           _id: new ObjectId(listId),
-          creator: creator.id,
+          'creator.id': creator.id,
         },
         { $set: { name } },
       );
@@ -183,7 +177,7 @@ export function buildMongoListRepository(): ListRepository {
 
       await listCollection.deleteOne({
         _id: new ObjectId(listId),
-        creator: creator.id,
+        'creator.id': creator.id,
       });
     },
     addParticipant: async (options: {

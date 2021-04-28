@@ -9,6 +9,7 @@ export const theme = {
     nameFieldBorder: '#4b4a4aeb',
     listItemBorder: '#e0e0e0',
     addItemButtonColor: MAIN_COLOR,
+    grey: '#616161',
   },
   spacing: { unit: 5 },
 } as const;
