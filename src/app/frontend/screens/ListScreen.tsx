@@ -15,6 +15,7 @@ import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
 import { BackLink } from '../common/BackLink';
+import { Header } from '../common/Header';
 import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
@@ -117,14 +118,6 @@ const ListItem = styled.li`
   :first-child {
     border-top: none;
   }
-`;
-
-const Header = styled.header`
-  padding: ${getSpaceSet(2, 1)};
-  border-bottom: 1px dotted ${getColor('listItemBorder')};
-  margin-bottom: ${getSpaceSet(5)};
-  display: flex;
-  justify-content: space-between;
 `;
 
 const NameWrapper = styled.div`

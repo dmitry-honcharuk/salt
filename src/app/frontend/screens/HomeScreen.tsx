@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon as IconBase } from '../common/Actions';
+import { Header } from '../common/Header';
 import { LinkBase } from '../common/LinkBase';
 
 export type Props = {
@@ -50,14 +51,6 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
     </Layout>
   );
 };
-
-const Header = styled.header`
-  padding: ${getSpaceSet(2, 1)};
-  border-bottom: 1px dotted ${getColor('listItemBorder')};
-  margin-bottom: ${getSpaceSet(5)};
-  display: flex;
-  justify-content: space-between;
-`;
 
 const AddListButton = styled(Button)`
   color: ${getColor('addItemButtonColor')};

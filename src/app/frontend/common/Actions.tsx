@@ -10,10 +10,10 @@ import { BaseButton } from './BaseButton';
 import { ButtonBase } from './ButtonBase';
 
 type Props = {
-  items: ReactNode[];
+  items?: ReactNode[];
 };
 
-export const Actions: FC<Props> = ({ items }) => {
+export const Actions: FC<Props> = ({ items = [] }) => {
   const { logout } = useAuth();
   const { push } = useRouter();
 
