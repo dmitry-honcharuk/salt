@@ -69,7 +69,7 @@ const OptionsIcon = styled(MoreIcon)`
 
 const Item = styled.li`
   :last-child {
-    border-top: 1px dashed ${getLighterColor('text', 3)};
+    border-top: 2px dashed ${getLighterColor('text', 2.5)};
   }
 `;
 
@@ -78,9 +78,10 @@ export const Button = styled(ButtonBase)`
   padding: ${getSpacePx(2, 3)};
   display: flex;
   align-items: center;
+  font-size: 1.3em;
 `;
 
 export const Icon = styled.svg`
-  height: 20px;
+  height: 25px;
   margin-right: ${getSpacePx(3)};
 `;

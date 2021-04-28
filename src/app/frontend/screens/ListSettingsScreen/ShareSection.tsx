@@ -1,4 +1,3 @@
-import { useAuth } from '@ficdev/auth-react';
 import copy from 'copy-to-clipboard';
 import { FC, useState } from 'react';
 import styled from 'styled-components';
@@ -8,48 +7,44 @@ import { getShareToken } from '../../services/api/getShareToken';
 import { getColor, getSpacePx } from '../../theme-selectors';
 
 export const ShareSection: FC<{ list: ListEntity }> = ({ list }) => {
-  const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [code, setCode] = useState('');
 
   const shareAvailable = isShareAvailable();
 
-  const isCreator = list.creator.id === currentUser?.id;
-
-  if (!isCreator) {
-    return null;
-  }
-
-  const handleToken = (token: string) => {
-    if (!shareAvailable) {
-      copy(token);
-      return;
-    }
-  };
-
-  const handleClick = async () => {
+  const fetchCode = async () => {
     setLoading(true);
 
     const { token } = await getShareToken(list.id);
 
-    handleToken(token);
-
     setLoading(false);
+    setCode(token);
+  };
+
+  const handleCopy = async () => {
+    copy(code);
     setCopied(true);
   };
 
+  const handleShare = () => {
+    navigator.share({ text: code });
+  };
+
+  const actions = code ? (
+    <>
+      <Button onClick={handleCopy}>{copied ? 'copied' : 'copy'}</Button>
+      {shareAvailable && <Button onClick={handleShare}>share</Button>}
+    </>
+  ) : (
+    <Button onClick={fetchCode} disabled={loading}>
+      get invite code
+    </Button>
+  );
+
   return (
     <Root>
-      <Buttons>
-        <Button onClick={handleClick} disabled={loading}>
-          {copied ? 'copied' : 'copy'}
-        </Button>
-        {shareAvailable && (
-          <Button onClick={handleClick} disabled={loading}>
-            share
-          </Button>
-        )}
-      </Buttons>
+      <Buttons>{actions}</Buttons>
     </Root>
   );
 };

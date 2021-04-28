@@ -1,5 +1,3 @@
-import { useAuth } from '@ficdev/auth-react';
-import { DeleteForever } from '@styled-icons/material/DeleteForever';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
 import {
@@ -11,7 +9,7 @@ import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ItemEntity } from 'core/entities/Item';
 import Link from 'next/link';
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
 import { BackLink } from '../common/BackLink';
@@ -26,12 +24,10 @@ type Props = {
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   removeItem: (id: string) => () => void;
-  removeList: () => Promise<void>;
   addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
   createdAt: number;
-  creatorId: string;
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
@@ -40,18 +36,11 @@ export const ListScreen: FunctionComponent<Props> = ({
   toggleItem,
   updateContent,
   removeItem,
-  removeList,
   addItem,
   setName,
   name,
   createdAt,
-  creatorId,
 }) => {
-  const [isDeleting, setDeleting] = useState(false);
-  const { user } = useAuth();
-
-  const isCreator = creatorId === user?.id;
-
   const settingsLink = (
     <Link href={`/${listId}/settings`}>
       <Button href={`/${listId}/settings`} as={LinkBase}>
@@ -59,20 +48,6 @@ export const ListScreen: FunctionComponent<Props> = ({
         <span>settings</span>
       </Button>
     </Link>
-  );
-
-  const deleteButton = (
-    <DeleteButton
-      disabled={isDeleting}
-      color='secondary'
-      onClick={async () => {
-        setDeleting(true);
-        await removeList();
-      }}
-    >
-      <Icon as={DeleteForever} />
-      <span>remove</span>
-    </DeleteButton>
   );
 
   return (
@@ -86,7 +61,7 @@ export const ListScreen: FunctionComponent<Props> = ({
             onChange={({ target }) => setName(target.value)}
           />
         </NameWrapper>
-        <Actions items={[settingsLink, ...(isCreator ? [deleteButton] : [])]} />
+        <Actions items={[settingsLink]} />
       </Header>
       <NewItemRow onCreate={addItem} />
       <Ul>
@@ -140,8 +115,4 @@ const NameInput = styled.input`
   :focus {
     outline: none;
   }
-`;
-
-const DeleteButton = styled(Button)`
-  color: ${getColor('secondary')};
 `;
