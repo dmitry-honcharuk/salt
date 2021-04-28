@@ -1,0 +1,4 @@
+Todo:
+  ☐ Implement adequate error exchange with auth service (error codes?)
+  ☐ Implement sharing
+  ☐ Implement admin area

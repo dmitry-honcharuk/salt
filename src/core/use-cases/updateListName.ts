@@ -1,9 +1,14 @@
 import { ListEntity } from 'core/entities/List';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import { UserEntity } from '../entities/User';
 
-export function buildUpdateListName({ listRepository }: Dependencies) {
-  return async ({ listId, name }: Input): Promise<ListEntity> => {
+export function updateListNameUsecaseFactory({ listRepository }: Dependencies) {
+  return async ({ listId, name, creator }: Input): Promise<ListEntity> => {
+    if (!creator) {
+      throw new CoreError('Forbidden');
+    }
+
     if (!listId) {
       throw new CoreError('List id is required');
     }
@@ -11,6 +16,7 @@ export function buildUpdateListName({ listRepository }: Dependencies) {
     const updatedList = await listRepository.updateListName({
       listId,
       name: name ?? '',
+      creator,
     });
 
     if (!updatedList) {
@@ -27,4 +33,5 @@ type Dependencies = {
 type Input = {
   listId?: string;
   name?: string;
+  creator?: UserEntity | null;
 };

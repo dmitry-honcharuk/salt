@@ -1,23 +1,25 @@
-import { buildCreateList } from 'core/use-cases/createList';
-import { buildGetLists } from 'core/use-cases/getLists';
-import { listRepository } from 'dependencies';
+import { authorized, listRepository } from 'app/dependencies';
+import { createRoute } from 'app/utils/api/route';
+import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
+import { createListUsecaseFactory } from 'core/use-cases/createList';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createRoute } from 'utils/api/route';
 
-export default createRoute().get(getAllLists).post(createList);
-
-async function getAllLists(req: NextApiRequest, res: NextApiResponse) {
-  const getLists = buildGetLists({ listRepository });
-
-  res.json(await getLists());
-}
+export default createRoute().use(authorized()).post(createList);
 
 async function createList(req: NextApiRequest, res: NextApiResponse) {
-  const { body } = req;
+  const {
+    body: { name: nameQuery },
+    user,
+  } = req;
 
-  const createList = buildCreateList({ listRepository });
+  const name = normalizeQueryParam(nameQuery);
 
-  const list = await createList(body);
+  const createList = createListUsecaseFactory({ listRepository });
+
+  const list = await createList({
+    name,
+    creator: user,
+  });
 
   res.json(list);
 }

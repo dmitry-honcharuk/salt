@@ -1,23 +1,24 @@
-import { buildToggleItem } from 'core/use-cases/toggleItem';
-import { listRepository } from 'dependencies';
+import { authorized, listRepository } from 'app/dependencies';
+import { createRoute } from 'app/utils/api/route';
+import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
+import { toggleItemUsecaseFactory } from 'core/use-cases/toggleItem';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createRoute } from 'utils/api/route';
-import { normalizeQueryParam } from 'utils/normalizeQueryParam';
 
-export default createRoute().put(toggleItem);
+export default createRoute().use(authorized()).put(toggleItem);
 
 async function toggleItem(req: NextApiRequest, res: NextApiResponse) {
   const {
+    user,
     query: { listId: listIdQuery, itemId: itemIdQuery },
   } = req;
-
   const listId = normalizeQueryParam(listIdQuery);
   const itemId = normalizeQueryParam(itemIdQuery);
 
-  const updatedItem = await buildToggleItem({ listRepository })({
-    listId,
-    itemId,
+  const updateItem = toggleItemUsecaseFactory({
+    listRepository,
   });
+
+  const updatedItem = await updateItem({ listId, itemId, user });
 
   res.json(updatedItem);
 }

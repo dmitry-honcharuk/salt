@@ -3,9 +3,22 @@ import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
 import omit from 'lodash/omit';
+import { isCreatorOrParticipant } from '../entities/List';
+import { UserEntity } from '../entities/User';
 
-export function buildUpdateItemContent({ listRepository }: Dependencies) {
-  return async ({ listId, itemId, content }: Input): Promise<ItemEntity> => {
+export function updateItemContentUsecaseFactory({
+  listRepository,
+}: Dependencies) {
+  return async ({
+    listId,
+    itemId,
+    content,
+    user,
+  }: Input): Promise<ItemEntity> => {
+    if (!user) {
+      throw new CoreError('Forbidden');
+    }
+
     if (!listId) {
       throw new CoreError('listId is required.');
     }
@@ -18,6 +31,10 @@ export function buildUpdateItemContent({ listRepository }: Dependencies) {
 
     if (!list) {
       throw new CoreError(`No such list found. (${listId})`);
+    }
+
+    if (!isCreatorOrParticipant(user, list)) {
+      throw new CoreError('Forbidden');
     }
 
     const item = list.items.find(({ id }) => id === itemId);
@@ -50,4 +67,5 @@ type Input = {
   listId?: string;
   itemId?: string;
   content?: string;
+  user?: UserEntity | null;
 };

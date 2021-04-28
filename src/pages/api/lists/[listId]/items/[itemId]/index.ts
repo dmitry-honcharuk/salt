@@ -1,25 +1,33 @@
-import { buildRemoveItem } from 'core/use-cases/removeItem';
-import { buildUpdateItemContent } from 'core/use-cases/updateItemContent';
-import { listRepository } from 'dependencies';
+import { authorized, listRepository } from 'app/dependencies';
+import { createRoute } from 'app/utils/api/route';
+import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
+import { removeItemUsecaseFactory } from 'core/use-cases/removeItem';
+import { updateItemContentUsecaseFactory } from 'core/use-cases/updateItemContent';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createRoute } from 'utils/api/route';
-import { normalizeQueryParam } from 'utils/normalizeQueryParam';
 
-export default createRoute().put(updateContent).delete(removeItem);
+export default createRoute()
+  .use(authorized())
+  .put(updateContent)
+  .delete(removeItem);
 
 async function updateContent(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery, itemId: itemIdQuery },
     body: { content },
+    user,
   } = req;
-
   const listId = normalizeQueryParam(listIdQuery);
   const itemId = normalizeQueryParam(itemIdQuery);
 
-  const updatedItem = await buildUpdateItemContent({ listRepository })({
+  const updateContent = updateItemContentUsecaseFactory({
+    listRepository,
+  });
+
+  const updatedItem = await updateContent({
     listId,
     itemId,
     content,
+    user,
   });
 
   res.json(updatedItem);
@@ -28,12 +36,17 @@ async function updateContent(req: NextApiRequest, res: NextApiResponse) {
 async function removeItem(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { listId: listIdQuery, itemId: itemIdQuery },
+    user,
   } = req;
 
   const listId = normalizeQueryParam(listIdQuery);
   const itemId = normalizeQueryParam(itemIdQuery);
 
-  await buildRemoveItem({ listRepository })({ listId, itemId });
+  await removeItemUsecaseFactory({ listRepository })({
+    listId,
+    itemId,
+    user: user,
+  });
 
   res.json({});
 }
