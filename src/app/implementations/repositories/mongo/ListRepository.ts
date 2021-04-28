@@ -38,7 +38,7 @@ export function buildMongoListRepository(): ListRepository {
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const cursor = listCollection.find({
-        $or: [{ 'creator.id': user.id }, { participants: { id: user.id } }],
+        $or: [{ 'creator.id': user.id }, { 'participants.id': user.id }],
       });
 
       return cursor

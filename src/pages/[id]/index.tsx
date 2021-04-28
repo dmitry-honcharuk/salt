@@ -295,6 +295,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       updateContent={handleContentUpdate}
       addItem={handleAddItem}
       removeItem={handleRemoveItem}
+      creatorId={rawList.creator.id}
     />
   );
 };

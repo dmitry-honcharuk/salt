@@ -1,3 +1,4 @@
+import { useAuth } from '@ficdev/auth-react';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
 import {
@@ -28,6 +29,7 @@ type Props = {
   name?: string;
   setName: (name: string) => void;
   createdAt: number;
+  creatorId: string;
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
@@ -40,7 +42,10 @@ export const ListScreen: FunctionComponent<Props> = ({
   setName,
   name,
   createdAt,
+  creatorId,
 }) => {
+  const { user: currentUser } = useAuth();
+
   const settingsLink = (
     <Link href={`/${listId}/settings`}>
       <Button href={`/${listId}/settings`} as={LinkBase}>
@@ -59,6 +64,7 @@ export const ListScreen: FunctionComponent<Props> = ({
             placeholder={getDisplayTime(createdAt)}
             value={name}
             onChange={({ target }) => setName(target.value)}
+            disabled={currentUser?.id !== creatorId}
           />
         </NameWrapper>
         <Actions items={[settingsLink]} />
@@ -103,7 +109,8 @@ const NameWrapper = styled.div`
 const NameInput = styled.input`
   color: ${getLighterColor('text', 1)};
   border: none;
-  border-bottom: 1px dashed ${getColor('nameFieldBorder')};
+  border-bottom: ${(p) =>
+    p.disabled ? 'none' : `1px dashed ${getColor('nameFieldBorder')(p)}`};
   border-radius: 0;
   padding: ${getSpaceSet(1, 2)};
   font-size: 1.5rem;
@@ -114,5 +121,12 @@ const NameInput = styled.input`
 
   :focus {
     outline: none;
+  }
+
+  :disabled {
+    background-color: transparent;
+    -webkit-text-fill-color: inherit;
+    color: inherit;
+    opacity: 1;
   }
 `;
