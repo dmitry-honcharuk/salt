@@ -1,11 +1,11 @@
-import { ListEntity } from 'core/entities/List';
+import { isCreatorOrParticipant, ListEntity } from 'core/entities/List';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { UserEntity } from '../entities/User';
 
 export function getListByIdUsecaseFactory({ listRepository }: Deps) {
-  return async ({ listId: id, creator }: Input): Promise<ListEntity | null> => {
-    if (!creator) {
+  return async ({ listId: id, user }: Input): Promise<ListEntity | null> => {
+    if (!user) {
       throw new CoreError('Forbidden');
     }
 
@@ -15,7 +15,7 @@ export function getListByIdUsecaseFactory({ listRepository }: Deps) {
 
     const list = await listRepository.getListById(id);
 
-    if (creator?.id !== list?.creator.id) {
+    if (!list || !isCreatorOrParticipant(user, list)) {
       throw new CoreError('Forbidden');
     }
 
@@ -28,5 +28,5 @@ type Deps = {
 };
 type Input = {
   listId?: string;
-  creator?: UserEntity | null;
+  user?: UserEntity | null;
 };

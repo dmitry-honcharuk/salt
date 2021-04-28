@@ -1,6 +1,4 @@
-import Color from 'color';
-
-const MAIN_COLOR = '#abf1d1';
+const MAIN_COLOR = '#008080';
 
 export const theme = {
   colors: {
@@ -10,7 +8,8 @@ export const theme = {
     text: '#3b3b3b',
     nameFieldBorder: '#4b4a4aeb',
     listItemBorder: '#e0e0e0',
-    addItemButtonColor: Color(MAIN_COLOR).darken(0.5).string(),
+    addItemButtonColor: MAIN_COLOR,
+    grey: '#616161',
   },
   spacing: { unit: 5 },
 } as const;

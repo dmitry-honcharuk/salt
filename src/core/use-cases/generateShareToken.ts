@@ -1,8 +1,9 @@
 import { CoreError } from '../errors/CoreError';
 import { ListRepository } from '../interfaces/repositories/ListRepository';
+import { signShareToken } from '../utils/share-token';
 
-export function shareListUsecaseFactory({ listRepository }: Dependencies) {
-  return async ({ listId, currentUserId }: Input): Promise<void> => {
+export function generateShareTokenFactory({ listRepository }: Dependencies) {
+  return async ({ currentUserId, listId }: Input): Promise<string> => {
     if (!currentUserId) {
       throw new CoreError('Forbidden');
     }
@@ -13,22 +14,18 @@ export function shareListUsecaseFactory({ listRepository }: Dependencies) {
 
     const list = await listRepository.getListById(listId);
 
-    if (!list) {
-      throw new CoreError('list not found');
+    if (list?.creator.id !== currentUserId) {
+      throw new CoreError('Forbidden');
     }
 
-    await listRepository.addParticipant({
-      listId,
-      participantId: currentUserId,
-    });
+    return signShareToken({ listId });
   };
 }
 
 type Dependencies = {
   listRepository: ListRepository;
 };
-
 type Input = {
-  listId?: string;
   currentUserId?: string;
+  listId?: string;
 };

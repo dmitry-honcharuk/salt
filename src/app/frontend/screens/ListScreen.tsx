@@ -1,5 +1,5 @@
-import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
-import { DeleteForever } from '@styled-icons/material/DeleteForever';
+import { useAuth } from '@ficdev/auth-react';
+import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
 import {
   getColor,
@@ -10,67 +10,64 @@ import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ItemEntity } from 'core/entities/Item';
 import Link from 'next/link';
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
+import { BackLink } from '../common/BackLink';
+import { Header } from '../common/Header';
+import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
 
 type Props = {
+  listId: string;
   items: DisplayableItem[];
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   removeItem: (id: string) => () => void;
-  removeList: () => Promise<void>;
   addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
   createdAt: number;
+  creatorId: string;
 };
 
 export const ListScreen: FunctionComponent<Props> = ({
+  listId,
   items,
   toggleItem,
   updateContent,
   removeItem,
-  removeList,
   addItem,
   setName,
   name,
   createdAt,
+  creatorId,
 }) => {
-  const [isDeleting, setDeleting] = useState(false);
+  const { user: currentUser } = useAuth();
+
+  const settingsLink = (
+    <Link href={`/${listId}/settings`}>
+      <Button href={`/${listId}/settings`} as={LinkBase}>
+        <Icon as={Tune} />
+        <span>settings</span>
+      </Button>
+    </Link>
+  );
 
   return (
     <Layout>
       <Header>
-        <Link href='/'>
-          <BackLink href='/'>
-            <Arrow90degLeft height={24} />
-          </BackLink>
-        </Link>
+        <BackLink />
         <NameWrapper>
           <NameInput
             placeholder={getDisplayTime(createdAt)}
             value={name}
             onChange={({ target }) => setName(target.value)}
+            disabled={currentUser?.id !== creatorId}
           />
         </NameWrapper>
-        <Actions
-          items={[
-            <DeleteButton
-              disabled={isDeleting}
-              color='secondary'
-              onClick={async () => {
-                setDeleting(true);
-                await removeList();
-              }}
-            >
-              <Icon as={DeleteForever} />
-              <span>remove</span>
-            </DeleteButton>,
-          ]}
-        />
+        <Actions items={[settingsLink]} />
       </Header>
       <NewItemRow onCreate={addItem} />
       <Ul>
@@ -104,25 +101,6 @@ const ListItem = styled.li`
   }
 `;
 
-const Header = styled.header`
-  padding: ${getSpaceSet(2, 1)};
-  border-bottom: 1px dotted ${getColor('listItemBorder')};
-  margin-bottom: ${getSpaceSet(5)};
-  display: flex;
-  justify-content: space-between;
-`;
-
-const BackLink = styled.a`
-  border: 2px dashed ${getLighterColor('text', 2)};
-  color: ${getLighterColor('text', 2)};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: ${getSpaceSet(9)};
-  width: ${getSpaceSet(9)};
-  cursor: pointer;
-`;
-
 const NameWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -131,7 +109,8 @@ const NameWrapper = styled.div`
 const NameInput = styled.input`
   color: ${getLighterColor('text', 1)};
   border: none;
-  border-bottom: 1px dashed ${getColor('nameFieldBorder')};
+  border-bottom: ${(p) =>
+    p.disabled ? 'none' : `1px dashed ${getColor('nameFieldBorder')(p)}`};
   border-radius: 0;
   padding: ${getSpaceSet(1, 2)};
   font-size: 1.5rem;
@@ -143,8 +122,11 @@ const NameInput = styled.input`
   :focus {
     outline: none;
   }
-`;
 
-const DeleteButton = styled(Button)`
-  color: ${getColor('secondary')};
+  :disabled {
+    background-color: transparent;
+    -webkit-text-fill-color: inherit;
+    color: inherit;
+    opacity: 1;
+  }
 `;

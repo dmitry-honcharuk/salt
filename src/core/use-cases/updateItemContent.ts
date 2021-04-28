@@ -3,6 +3,7 @@ import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
 import omit from 'lodash/omit';
+import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
 export function updateItemContentUsecaseFactory({
@@ -12,9 +13,9 @@ export function updateItemContentUsecaseFactory({
     listId,
     itemId,
     content,
-    creator,
+    user,
   }: Input): Promise<ItemEntity> => {
-    if (!creator) {
+    if (!user) {
       throw new CoreError('Forbidden');
     }
 
@@ -32,7 +33,7 @@ export function updateItemContentUsecaseFactory({
       throw new CoreError(`No such list found. (${listId})`);
     }
 
-    if (creator?.id !== list.creator.id) {
+    if (!isCreatorOrParticipant(user, list)) {
       throw new CoreError('Forbidden');
     }
 
@@ -47,7 +48,7 @@ export function updateItemContentUsecaseFactory({
     });
 
     const result = await listRepository.updateItem(
-      { listId, itemId, creator },
+      { listId, itemId },
       omit(updatedItem, ['id']),
     );
 
@@ -66,5 +67,5 @@ type Input = {
   listId?: string;
   itemId?: string;
   content?: string;
-  creator?: UserEntity | null;
+  user?: UserEntity | null;
 };

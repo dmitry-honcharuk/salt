@@ -14,7 +14,7 @@ export async function post<R = any, B extends Record<string, unknown> = any>(
 
   if (!response.ok) {
     throw {
-      message: response.status < 500 ? data.message : 'Something went wrong',
+      message: data.message,
       status: response.status,
     };
   }
@@ -38,7 +38,7 @@ export async function put<R = any, B extends Record<string, unknown> = any>(
 
   if (!response.ok) {
     throw {
-      message: response.status < 500 ? data.message : 'Something went wrong',
+      message: data.message,
       status: response.status,
     };
   }
@@ -56,7 +56,7 @@ export async function get<T = any>(
 
   if (!response.ok) {
     throw {
-      message: response.status < 500 ? data.message : 'Something went wrong',
+      message: data.message,
       status: response.status,
     };
   }
@@ -80,7 +80,7 @@ export async function patch<R = any, B extends Record<string, unknown> = any>(
 
   if (!response.ok) {
     throw {
-      message: response.status < 500 ? data.message : 'Something went wrong',
+      message: data.message,
       status: response.status,
     };
   }
@@ -97,7 +97,7 @@ export async function del<T = any>(url: string): Promise<T> {
 
   if (!response.ok) {
     throw {
-      message: response.status < 500 ? data.message : 'Something went wrong',
+      message: data.message,
       status: response.status,
     };
   }

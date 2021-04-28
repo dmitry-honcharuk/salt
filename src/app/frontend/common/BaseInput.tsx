@@ -2,6 +2,10 @@ import styled from 'styled-components';
 import { getColor, getLighterColor, getSpaceSet } from '../theme-selectors';
 
 export const BaseInput = styled.input`
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
   border: none;
   font-size: 1.3rem;
   padding: ${getSpaceSet(3, 2)};

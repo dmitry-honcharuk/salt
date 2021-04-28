@@ -2,8 +2,6 @@ import { ArrowRightSquare } from '@styled-icons/bootstrap';
 import { PlaylistAdd } from '@styled-icons/material/PlaylistAdd';
 import { Layout } from 'app/frontend/common/Layout';
 import { H1, H4 } from 'app/frontend/common/Typography';
-import { usePromise } from 'app/frontend/hooks/usePromise';
-import { createList } from 'app/frontend/services/api/createList';
 import {
   getColor,
   getLighterColor,
@@ -12,36 +10,29 @@ import {
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ListEntity } from 'core/entities/List';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { FunctionComponent } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon as IconBase } from '../common/Actions';
+import { Header } from '../common/Header';
+import { LinkBase } from '../common/LinkBase';
 
 export type Props = {
   lists: ListEntity[];
 };
 
 export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
-  const { push } = useRouter();
-  const [create, { pending }] = usePromise(() => createList());
-
   return (
     <Layout>
       <Header>
         <H1 as={H4}>All Lists</H1>
         <Actions
           items={[
-            <AddListButton
-              onClick={async () => {
-                const list = await create();
-
-                await push(`/${list.id}`);
-              }}
-              disabled={pending}
-            >
-              <AddListIcon as={PlaylistAdd} />
-              <span>create list</span>
-            </AddListButton>,
+            <Link href='/new'>
+              <AddListButton href='/new' as={LinkBase}>
+                <AddListIcon as={PlaylistAdd} />
+                <span>add list</span>
+              </AddListButton>
+            </Link>,
           ]}
         />
       </Header>
@@ -60,14 +51,6 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
     </Layout>
   );
 };
-
-const Header = styled.header`
-  padding: ${getSpaceSet(2, 1)};
-  border-bottom: 1px dotted ${getColor('listItemBorder')};
-  margin-bottom: ${getSpaceSet(5)};
-  display: flex;
-  justify-content: space-between;
-`;
 
 const AddListButton = styled(Button)`
   color: ${getColor('addItemButtonColor')};

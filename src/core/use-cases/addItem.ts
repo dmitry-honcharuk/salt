@@ -1,6 +1,7 @@
 import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
 export function addItemUsecaseFactory({ listRepository }: Deps) {
@@ -9,9 +10,9 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
     content,
     done = false,
     createdAt = Date.now(),
-    creator,
+    user,
   }: Input): Promise<ItemEntity> => {
-    if (!creator) {
+    if (!user) {
       throw new CoreError('Forbidden');
     }
 
@@ -19,12 +20,16 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
       throw new CoreError('List id is required');
     }
 
-    const item = await listRepository.addItem({
-      listId,
+    const list = await listRepository.getListById(listId);
+
+    if (!list || !isCreatorOrParticipant(user, list)) {
+      throw new CoreError('Forbidden');
+    }
+
+    const item = await listRepository.addItemToList(listId, {
       content: content ?? '',
       done,
       createdAt,
-      creator,
     });
 
     if (!item) {
@@ -43,5 +48,5 @@ type Input = {
   content?: string;
   done?: boolean;
   createdAt?: number;
-  creator?: UserEntity | null;
+  user?: UserEntity | null;
 };

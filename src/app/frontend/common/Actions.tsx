@@ -1,19 +1,19 @@
+import { useAuth } from '@ficdev/auth-react';
 import { Logout } from '@styled-icons/material/Logout';
 import { MoreVert as MoreIcon } from '@styled-icons/material/MoreVert';
 import { useRouter } from 'next/router';
 import { FC, ReactNode } from 'react';
 import PopupBase from 'reactjs-popup';
 import styled from 'styled-components';
-import { useAuth } from '../auth';
 import { getColor, getLighterColor, getSpacePx } from '../theme-selectors';
 import { BaseButton } from './BaseButton';
 import { ButtonBase } from './ButtonBase';
 
 type Props = {
-  items: ReactNode[];
+  items?: ReactNode[];
 };
 
-export const Actions: FC<Props> = ({ items }) => {
+export const Actions: FC<Props> = ({ items = [] }) => {
   const { logout } = useAuth();
   const { push } = useRouter();
 
@@ -69,7 +69,7 @@ const OptionsIcon = styled(MoreIcon)`
 
 const Item = styled.li`
   :last-child {
-    border-top: 1px dashed ${getLighterColor('text', 3)};
+    border-top: 2px dashed ${getLighterColor('text', 2.5)};
   }
 `;
 
@@ -78,9 +78,10 @@ export const Button = styled(ButtonBase)`
   padding: ${getSpacePx(2, 3)};
   display: flex;
   align-items: center;
+  font-size: 1.3em;
 `;
 
 export const Icon = styled.svg`
-  height: 20px;
+  height: 25px;
   margin-right: ${getSpacePx(3)};
 `;

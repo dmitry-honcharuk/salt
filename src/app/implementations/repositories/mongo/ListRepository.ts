@@ -1,14 +1,14 @@
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
-import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import {
+  ListRepository,
+  ParticipantToAdd,
+} from 'core/interfaces/repositories/ListRepository';
 import uniqueBy from 'lodash/uniqBy';
 import { ObjectId, WithId } from 'mongodb';
-import { UserEntity } from '../../../../core/entities/User';
 import { getDatabase } from './mongo.client';
 
-type ListSchema = Omit<ListEntity, 'id' | 'creator'> & {
-  creator: string;
-};
+type ListSchema = Omit<ListEntity, 'id'>;
 
 export function buildMongoListRepository(): ListRepository {
   return {
@@ -19,8 +19,8 @@ export function buildMongoListRepository(): ListRepository {
 
       const list: ListSchema = {
         name,
+        creator,
         items: [],
-        creator: creator.id,
         createdAt,
       };
 
@@ -32,30 +32,28 @@ export function buildMongoListRepository(): ListRepository {
         id: entry.insertedId.toHexString(),
       };
     },
-    getLists: async ({ creator }) => {
+    getUserLists: async ({ user }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
 
       const cursor = listCollection.find({
-        creator: creator.id,
+        $or: [{ 'creator.id': user.id }, { 'participants.id': user.id }],
       });
 
       return cursor
         .map(({ _id, ...list }) => ({
           ...list,
-          creator,
           id: _id.toHexString(),
         }))
         .toArray();
     },
-    addItem: async ({ listId, content, done, creator, createdAt }) => {
+    addItemToList: async (listId, { content, done, createdAt }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -99,18 +97,14 @@ export function buildMongoListRepository(): ListRepository {
       return {
         ...fields,
         id: _id.toHexString(),
-        creator: {
-          id: list.creator,
-        },
       };
     },
-    updateItem: async ({ listId, itemId, creator }, itemFields) => {
+    updateItem: async ({ listId, itemId }, itemFields) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -143,7 +137,7 @@ export function buildMongoListRepository(): ListRepository {
       const { value } = await listCollection.findOneAndUpdate(
         {
           _id: new ObjectId(listId),
-          creator: creator.id,
+          'creator.id': creator.id,
         },
         { $set: { name } },
       );
@@ -156,13 +150,12 @@ export function buildMongoListRepository(): ListRepository {
 
       return { id: _id.toHexString(), ...list, name, creator };
     },
-    removeItem: async ({ listId, itemId, creator }) => {
+    removeItem: async ({ listId, itemId }) => {
       const db = await getDatabase();
 
       const listCollection = db.collection<WithId<ListSchema>>('lists');
       const filter = {
         _id: new ObjectId(listId),
-        creator: creator.id,
       };
 
       const list = await listCollection.findOne(filter);
@@ -184,12 +177,12 @@ export function buildMongoListRepository(): ListRepository {
 
       await listCollection.deleteOne({
         _id: new ObjectId(listId),
-        creator: creator.id,
+        'creator.id': creator.id,
       });
     },
     addParticipant: async (options: {
       listId: string;
-      participantId: string;
+      participant: ParticipantToAdd;
     }): Promise<void> => {
       const db = await getDatabase();
 
@@ -205,15 +198,11 @@ export function buildMongoListRepository(): ListRepository {
         return;
       }
 
-      const participant: UserEntity = {
-        id: options.participantId,
-      };
-
       const participants = list.participants ?? [];
 
       await listCollection.updateOne(filter, {
         $set: {
-          participants: uniqueBy([...participants, participant], 'id'),
+          participants: uniqueBy([...participants, options.participant], 'id'),
         },
       });
     },

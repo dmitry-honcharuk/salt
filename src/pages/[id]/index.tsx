@@ -2,7 +2,6 @@ import { appAuthServiceFactory, listRepository } from 'app/dependencies';
 import { ListScreen } from 'app/frontend/screens/ListScreen';
 import { addItem } from 'app/frontend/services/api/addItem';
 import { removeItem } from 'app/frontend/services/api/removeItem';
-import { removeList } from 'app/frontend/services/api/removeList';
 import { toggleItem } from 'app/frontend/services/api/toggleItem';
 import { updateItemContent } from 'app/frontend/services/api/updateItemContent';
 import { updateListName } from 'app/frontend/services/api/updateListName';
@@ -19,6 +18,7 @@ import {
 } from 'app/types/socket';
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
+import { ForbiddenError } from 'core/errors/ForbiddenError';
 import { getListByIdUsecaseFactory } from 'core/use-cases/getListById';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
@@ -27,10 +27,8 @@ import keyBy from 'lodash/keyBy';
 import orderBy from 'lodash/orderBy';
 import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
 import { FunctionComponent, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
-import { ForbiddenError } from '../core/errors/ForbiddenError';
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
@@ -44,8 +42,6 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   const [name, setName] = useState(rawList.name);
 
   const emit = useEmit();
-
-  const { push } = useRouter();
 
   const setItemByDisplayId = useCallback(
     (displayId: string, item: DisplayableItem) => {
@@ -288,13 +284,9 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
-  const handleRemoveList = async () => {
-    await removeList({ listId: rawList.id });
-    await push('/');
-  };
-
   return (
     <ListScreen
+      listId={rawList.id}
       name={name}
       createdAt={rawList.createdAt}
       setName={handleNameChange}
@@ -303,7 +295,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       updateContent={handleContentUpdate}
       addItem={handleAddItem}
       removeItem={handleRemoveItem}
-      removeList={handleRemoveList}
+      creatorId={rawList.creator.id}
     />
   );
 };
@@ -334,7 +326,7 @@ export const getServerSideProps: GetServerSideProps<{
       listRepository,
     })({
       listId: id,
-      creator: currentUser,
+      user: currentUser,
     });
 
     if (!list) {

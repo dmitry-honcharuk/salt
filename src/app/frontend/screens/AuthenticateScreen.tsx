@@ -1,10 +1,11 @@
+import { useAuth } from '@ficdev/auth-react';
 import { BaseButton } from 'app/frontend/common/BaseButton';
 import { H5 } from 'app/frontend/common/Typography';
 import { getSpace } from 'app/frontend/theme-selectors';
 import { useRouter } from 'next/router';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
-import { useAuth } from '../auth';
+import { Centered } from '../common/Centered';
 
 export const AuthenticateScreen: FunctionComponent = () => {
   const { authorizeWithRedirect } = useAuth();
@@ -19,38 +20,16 @@ export const AuthenticateScreen: FunctionComponent = () => {
   };
 
   return (
-    <Root>
-      <Content>
-        <Title>
-          {pending ? 'Processing...' : 'You need to authenticate to continue'}
-        </Title>
-        {!pending && (
-          <CreateButton onClick={authorize}>Let's do it!</CreateButton>
-        )}
-      </Content>
-    </Root>
+    <Centered screenHeight>
+      <Title>
+        {pending ? 'Processing...' : 'You need to authenticate to continue'}
+      </Title>
+      {!pending && (
+        <CreateButton onClick={authorize}>Let's do it!</CreateButton>
+      )}
+    </Centered>
   );
 };
-
-const Centered = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-`;
-
-const Root = styled(Centered)`
-  height: 100vh;
-`;
-
-const Content = styled(Centered)`
-  transform: translateY(-50%);
-  width: 90%;
-
-  @media (min-width: 600px) {
-    width: 500px;
-  }
-`;
 
 const Title = styled(H5)`
   margin-bottom: ${getSpace(3)}px;
