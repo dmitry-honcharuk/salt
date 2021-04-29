@@ -13,11 +13,17 @@ import { removeList } from '../../services/api/removeList';
 import { getColor, getSpacePx } from '../../theme-selectors';
 import { ShareSection } from './ShareSection';
 
+enum State {
+  Idle,
+  DeleteConfirmation,
+  DeleteInProgress,
+}
+
 export const ListSettingsScreen: FC<{ list: ListEntity }> = ({ list }) => {
   const { id, participants = [], creator } = list;
   const { user: currentUser } = useAuth();
-  const [isDeleting, setDeleting] = useState(false);
   const { push } = useRouter();
+  const [state, setState] = useState(State.Idle);
 
   const isCreator = creator.id === currentUser?.id;
 
@@ -66,18 +72,33 @@ export const ListSettingsScreen: FC<{ list: ListEntity }> = ({ list }) => {
         {isCreator && (
           <Section>
             <DangerSectionTitle>Danger zone</DangerSectionTitle>
-            <DeleteButton
-              fullWidth
-              disabled={isDeleting}
-              color='secondary'
-              onClick={async () => {
-                setDeleting(true);
-                await removeList({ listId: id });
-                await push('/');
-              }}
-            >
-              remove
-            </DeleteButton>
+            <Buttons>
+              {state === State.Idle ? (
+                <DeleteButton
+                  fullWidth
+                  color='secondary'
+                  onClick={() => setState(State.DeleteConfirmation)}
+                >
+                  remove
+                </DeleteButton>
+              ) : (
+                <>
+                  <Button onClick={() => setState(State.Idle)}>no</Button>
+                  <DeleteButton
+                    fullWidth
+                    disabled={state === State.DeleteInProgress}
+                    color='secondary'
+                    onClick={async () => {
+                      setState(State.DeleteInProgress);
+                      await removeList({ listId: id });
+                      await push('/');
+                    }}
+                  >
+                    yes, remove
+                  </DeleteButton>
+                </>
+              )}
+            </Buttons>
           </Section>
         )}
       </Main>
@@ -128,9 +149,22 @@ const Date = styled.span`
   color: ${getColor('grey')};
 `;
 
-const DeleteButton = styled(ButtonBase)`
-  color: ${getColor('secondary')};
+const Buttons = styled.div`
+  display: flex;
+  margin: ${getSpacePx(0, -2)};
+`;
+
+const Button = styled(ButtonBase)`
+  color: ${getColor('grey')};
   padding: ${getSpacePx(2)};
+  border: 2px dashed ${getColor('grey')};
   font-size: 1.3em;
-  border: 2px dashed ${getColor('secondary')};
+  display: block;
+  width: 100%;
+  margin: ${getSpacePx(0, 2)};
+`;
+
+const DeleteButton = styled(Button)`
+  color: ${getColor('secondary')};
+  border-color: ${getColor('secondary')};
 `;
