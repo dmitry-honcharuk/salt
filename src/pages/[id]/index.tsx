@@ -22,12 +22,13 @@ import { ForbiddenError } from 'core/errors/ForbiddenError';
 import { getListByIdUsecaseFactory } from 'core/use-cases/getListById';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
+import debounce from 'lodash/debounce';
 import find from 'lodash/find';
 import keyBy from 'lodash/keyBy';
 import orderBy from 'lodash/orderBy';
 import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
-import { FunctionComponent, useCallback, useState } from 'react';
+import { FunctionComponent, useCallback, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
@@ -177,6 +178,26 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
+  type UpdateItem = (options: {
+    itemId: string;
+    listId: string;
+    content: string;
+  }) => Promise<void>;
+  const updateContent = useRef(
+    debounce<UpdateItem>(async ({ itemId, listId, content }) => {
+      await updateItemContent({
+        itemId,
+        listId,
+        content,
+      });
+      emit<ItemContentChangedEvent>(TOPICS.ITEM_CONTENT_CHANGED, {
+        itemId,
+        listId,
+        content,
+      });
+    }, 800),
+  );
+
   const handleContentUpdate = (displayId: string) => async (
     newContent: string,
   ) => {
@@ -190,12 +211,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     setItemByDisplayId(displayId, { ...item, content: newContent });
 
     try {
-      await updateItemContent({
-        itemId,
-        listId: rawList.id,
-        content: newContent,
-      });
-      emit<ItemContentChangedEvent>(TOPICS.ITEM_CONTENT_CHANGED, {
+      await updateContent.current({
         itemId,
         listId: rawList.id,
         content: newContent,
@@ -240,20 +256,31 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       toast.error('Could not create');
     }
   };
+
+  type UpdateName = (options: {
+    listId: string;
+    name: string;
+  }) => Promise<void>;
+  const updateName = useRef(
+    debounce<UpdateName>(async ({ listId, name }) => {
+      await updateListName({
+        listId,
+        name,
+      });
+      emit<ListNameChangedEvent>(TOPICS.LIST_NAME_CHANGED, {
+        listId,
+        name,
+      });
+    }, 800),
+  );
+
   const handleNameChange = async (newName: string) => {
     const oldName = name;
 
     setName(newName);
 
     try {
-      await updateListName({
-        listId: rawList.id,
-        name: newName,
-      });
-      emit<ListNameChangedEvent>(TOPICS.LIST_NAME_CHANGED, {
-        listId: rawList.id,
-        name: newName,
-      });
+      await updateName.current({ listId: rawList.id, name: newName });
     } catch (error) {
       setName(oldName);
       toast.error('Could not update');
