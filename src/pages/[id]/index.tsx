@@ -24,12 +24,14 @@ import produce from 'immer';
 import { Dictionary } from 'lodash';
 import debounce from 'lodash/debounce';
 import find from 'lodash/find';
+import _omitBy from 'lodash/fp/omitBy';
 import keyBy from 'lodash/keyBy';
 import orderBy from 'lodash/orderBy';
 import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
 import { FunctionComponent, useCallback, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { cleanList } from '../../app/frontend/services/api/clean';
 
 const ListPage: FunctionComponent<{ list: ListEntity }> = ({
   list: rawList,
@@ -311,6 +313,25 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
+  const handleClean = async () => {
+    const removedIds = await cleanList(rawList.id);
+
+    if (!removedIds.length) {
+      return;
+    }
+
+    setItemDict(
+      _omitBy<DisplayableItem>(({ id }) => id && removedIds.includes(id)),
+    );
+
+    for (const removedId of removedIds) {
+      emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
+        listId: rawList.id,
+        itemId: removedId,
+      });
+    }
+  };
+
   return (
     <ListScreen
       listId={rawList.id}
@@ -323,6 +344,7 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
       addItem={handleAddItem}
       removeItem={handleRemoveItem}
       creatorId={rawList.creator.id}
+      clean={handleClean}
     />
   );
 };

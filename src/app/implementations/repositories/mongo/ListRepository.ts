@@ -5,7 +5,7 @@ import {
   ParticipantToAdd,
 } from 'core/interfaces/repositories/ListRepository';
 import uniqueBy from 'lodash/uniqBy';
-import { ObjectId, WithId } from 'mongodb';
+import { Collection, ObjectId, WithId } from 'mongodb';
 import { getDatabase } from './mongo.client';
 
 type ListSchema = Omit<ListEntity, 'id'>;
@@ -13,9 +13,7 @@ type ListSchema = Omit<ListEntity, 'id'>;
 export function buildMongoListRepository(): ListRepository {
   return {
     createList: async ({ name, createdAt, creator }) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<ListSchema>('lists');
+      const listCollection = await getListCollection();
 
       const list: ListSchema = {
         name,
@@ -33,9 +31,7 @@ export function buildMongoListRepository(): ListRepository {
       };
     },
     getUserLists: async ({ user }) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
 
       const cursor = listCollection.find({
         $or: [{ 'creator.id': user.id }, { 'participants.id': user.id }],
@@ -49,9 +45,7 @@ export function buildMongoListRepository(): ListRepository {
         .toArray();
     },
     addItemToList: async (listId, { content, done, createdAt }) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
       const filter = {
         _id: new ObjectId(listId),
       };
@@ -63,7 +57,7 @@ export function buildMongoListRepository(): ListRepository {
       }
 
       const item: ItemEntity = {
-        id: genereteItemId(list),
+        id: generateItemId(list),
         content,
         done,
         createdAt,
@@ -80,9 +74,7 @@ export function buildMongoListRepository(): ListRepository {
       return item;
     },
     getListById: async (listId) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
 
       const list = await listCollection.findOne({
         _id: new ObjectId(listId),
@@ -100,9 +92,7 @@ export function buildMongoListRepository(): ListRepository {
       };
     },
     updateItem: async ({ listId, itemId }, itemFields) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
       const filter = {
         _id: new ObjectId(listId),
       };
@@ -130,9 +120,7 @@ export function buildMongoListRepository(): ListRepository {
       return updatedItem;
     },
     updateListName: async ({ listId, name, creator }) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
 
       const { value } = await listCollection.findOneAndUpdate(
         {
@@ -151,9 +139,7 @@ export function buildMongoListRepository(): ListRepository {
       return { id: _id.toHexString(), ...list, name, creator };
     },
     removeItem: async ({ listId, itemId }) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
       const filter = {
         _id: new ObjectId(listId),
       };
@@ -171,9 +157,7 @@ export function buildMongoListRepository(): ListRepository {
       });
     },
     removeList: async (listId: string, { creator }) => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
 
       await listCollection.deleteOne({
         _id: new ObjectId(listId),
@@ -184,9 +168,7 @@ export function buildMongoListRepository(): ListRepository {
       listId: string;
       participant: ParticipantToAdd;
     }): Promise<void> => {
-      const db = await getDatabase();
-
-      const listCollection = db.collection<WithId<ListSchema>>('lists');
+      const listCollection = await getListCollection();
 
       const filter = {
         _id: new ObjectId(options.listId),
@@ -206,9 +188,42 @@ export function buildMongoListRepository(): ListRepository {
         },
       });
     },
+    async removeDoneItems(listId: string): Promise<string[] | null> {
+      const listCollection = await getListCollection();
+
+      const filter = {
+        _id: new ObjectId(listId),
+      };
+
+      const list = await listCollection.findOne(filter);
+
+      if (!list) {
+        return null;
+      }
+
+      const idsToRemove = list.items
+        .filter(({ done }) => done)
+        .map(({ id }) => id);
+
+      if (idsToRemove.length) {
+        await listCollection.updateOne(filter, {
+          $set: {
+            items: list.items.filter(({ done }) => !done),
+          },
+        });
+      }
+
+      return idsToRemove;
+    },
   };
 }
 
-function genereteItemId(list: WithId<ListSchema>): string {
+async function getListCollection(): Promise<Collection<WithId<ListSchema>>> {
+  const db = await getDatabase();
+
+  return db.collection<WithId<ListSchema>>('lists');
+}
+
+function generateItemId(list: WithId<ListSchema>): string {
   return `${list._id.toHexString()}-${Date.now()}-${list.items.length + 1}`;
 }

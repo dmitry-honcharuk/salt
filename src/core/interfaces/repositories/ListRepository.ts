@@ -36,6 +36,8 @@ export interface ListRepository {
     listId: string;
     participant: ParticipantToAdd;
   }): Promise<void>;
+
+  removeDoneItems(listId: string): Promise<string[] | null>;
 }
 
 type AddItem = Omit<ItemEntity, 'id'>;

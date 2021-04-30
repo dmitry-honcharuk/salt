@@ -1,16 +1,17 @@
 import { useAuth } from '@ficdev/auth-react';
+import { CleaningServices } from '@styled-icons/material/CleaningServices';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
 import {
   getColor,
-  getLighterColor,
+  getLighterColor, getSpacePx,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
 import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ItemEntity } from 'core/entities/Item';
 import Link from 'next/link';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
 import { BackLink } from '../common/BackLink';
@@ -28,6 +29,7 @@ type Props = {
   addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
+  clean: () => Promise<void>;
   createdAt: number;
   creatorId: string;
 };
@@ -40,11 +42,21 @@ export const ListScreen: FunctionComponent<Props> = ({
   removeItem,
   addItem,
   setName,
+  clean,
   name,
   createdAt,
   creatorId,
 }) => {
   const { user: currentUser } = useAuth();
+  const [pendingClean, setPendingClean] = useState(false);
+
+  const doneCount = items.filter(({ done }) => done).length;
+
+  const handleClean = async () => {
+    setPendingClean(true);
+    await clean();
+    setPendingClean(false);
+  };
 
   const settingsLink = (
     <Link href={`/${listId}/settings`}>
@@ -53,6 +65,16 @@ export const ListScreen: FunctionComponent<Props> = ({
         <span>settings</span>
       </Button>
     </Link>
+  );
+
+  const removeDone = (
+    <CleanButton
+      onClick={handleClean}
+      disabled={pendingClean || doneCount === 0}
+    >
+      <Icon as={CleaningServices} />
+      <span>clean</span>
+    </CleanButton>
   );
 
   return (
@@ -67,7 +89,7 @@ export const ListScreen: FunctionComponent<Props> = ({
             disabled={currentUser?.id !== creatorId}
           />
         </NameWrapper>
-        <Actions items={[settingsLink]} />
+        <Actions items={[settingsLink, removeDone]} />
       </Header>
       <NewItemRow onCreate={addItem} />
       <Ul>
@@ -129,4 +151,9 @@ const NameInput = styled.input`
     color: inherit;
     opacity: 1;
   }
+`;
+
+const CleanButton = styled(Button)`
+  color: ${getColor('secondary')};
+  padding-bottom: ${getSpacePx(3)};
 `;
