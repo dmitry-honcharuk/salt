@@ -1,5 +1,6 @@
 import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
+import { DragIndicator as DragIndicatorIcon } from '@styled-icons/material/DragIndicator';
 import { Save } from '@styled-icons/material/Save';
 import { BaseInput } from 'app/frontend/common/BaseInput';
 import {
@@ -18,6 +19,7 @@ type Props = {
   onRemove: () => void;
   focused?: boolean;
   pending?: boolean;
+  moving?: boolean;
 };
 export const Item: FunctionComponent<Props> = ({
   content,
@@ -27,6 +29,7 @@ export const Item: FunctionComponent<Props> = ({
   onRemove,
   focused = false,
   pending = false,
+  moving = false,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -36,16 +39,27 @@ export const Item: FunctionComponent<Props> = ({
     }
   }, [focused]);
 
-  const icon = pending ? Save : done ? CheckBoxIcon : CheckBoxOutlineBlankIcon;
+  const icon = moving
+    ? DragIndicatorIcon
+    : pending
+    ? Save
+    : done
+    ? CheckBoxIcon
+    : CheckBoxOutlineBlankIcon;
   const lastContentRef = useRef<string | null>(null);
 
   return (
     <Root>
-      <Icon as={icon} onClick={onToggle} done={done} pending={pending} />
+      <Icon
+        as={icon}
+        onClick={moving ? undefined : onToggle}
+        done={done}
+        pending={pending}
+      />
       <Input
         done={done}
         value={content}
-        disabled={pending}
+        disabled={pending || moving}
         onKeyDown={() => {
           lastContentRef.current = content;
         }}

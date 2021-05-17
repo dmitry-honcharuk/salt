@@ -2,11 +2,7 @@ import { useAuth } from '@ficdev/auth-react';
 import { CleaningServices } from '@styled-icons/material/CleaningServices';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
-import {
-  getColor,
-  getLighterColor, getSpacePx,
-  getSpaceSet,
-} from 'app/frontend/theme-selectors';
+import { getColor, getLighterColor, getSpacePx, getSpaceSet, } from 'app/frontend/theme-selectors';
 import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ItemEntity } from 'core/entities/Item';
@@ -15,6 +11,7 @@ import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { Actions, Button, Icon } from '../common/Actions';
 import { BackLink } from '../common/BackLink';
+import { DraggableList } from '../common/DraggableList';
 import { Header } from '../common/Header';
 import { LinkBase } from '../common/LinkBase';
 import { Item } from './Item';
@@ -32,7 +29,10 @@ type Props = {
   clean: () => Promise<void>;
   createdAt: number;
   creatorId: string;
+  handleOrderChange: (ids: string[]) => void;
 };
+
+// @TODO Fix dragg cache problem (could not drag after refresh)
 
 export const ListScreen: FunctionComponent<Props> = ({
   listId,
@@ -46,6 +46,7 @@ export const ListScreen: FunctionComponent<Props> = ({
   name,
   createdAt,
   creatorId,
+  handleOrderChange,
 }) => {
   const { user: currentUser } = useAuth();
   const [pendingClean, setPendingClean] = useState(false);
@@ -92,11 +93,19 @@ export const ListScreen: FunctionComponent<Props> = ({
         <Actions items={[settingsLink, removeDone]} />
       </Header>
       <NewItemRow onCreate={addItem} />
-      <Ul>
-        {items.map(({ id, displayId, content, done }) => (
+      <DraggableList
+        items={items.map((item) => ({
+          ...item,
+          id: item.id ?? item.displayId,
+        }))}
+        onDragEnd={(items) => {
+          handleOrderChange(items.map((item) => item.id));
+        }}
+        renderItem={({ id, displayId, content, done }) => (
           <ListItem key={displayId}>
             <Item
               pending={!id}
+              moving
               content={content}
               done={done}
               onToggle={toggleItem(displayId)}
@@ -104,18 +113,13 @@ export const ListScreen: FunctionComponent<Props> = ({
               onRemove={removeItem(displayId)}
             />
           </ListItem>
-        ))}
-      </Ul>
+        )}
+      />
     </Layout>
   );
 };
 
-const Ul = styled.ul`
-  margin: ${getSpaceSet(4, 0)};
-  font-size: 20px;
-`;
-
-const ListItem = styled.li`
+const ListItem = styled.div`
   border-top: 1px dashed ${getColor('listItemBorder')};
 
   :first-child {
@@ -132,7 +136,7 @@ const NameInput = styled.input`
   color: ${getLighterColor('text', 1)};
   border: none;
   border-bottom: ${(p) =>
-    p.disabled ? 'none' : `1px dashed ${getColor('nameFieldBorder')(p)}`};
+  p.disabled ? 'none' : `1px dashed ${getColor('nameFieldBorder')(p)}`};
   border-radius: 0;
   padding: ${getSpaceSet(1, 2)};
   font-size: 1.5rem;

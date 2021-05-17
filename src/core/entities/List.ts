@@ -9,6 +9,7 @@ export interface ListEntity {
   creator: UserEntity;
   createdAt: number;
   participants?: ParticipantEntity[];
+  order?: Record<string, string[]>;
 }
 
 export function isCreatorOrParticipant(

@@ -1,6 +1,9 @@
+import { useAuth } from '@ficdev/auth-react';
 import { appAuthServiceFactory, listRepository } from 'app/dependencies';
 import { ListScreen } from 'app/frontend/screens/ListScreen';
 import { addItem } from 'app/frontend/services/api/addItem';
+import { getListById } from 'app/frontend/services/api/getListById';
+import { orderItems } from 'app/frontend/services/api/orderItems';
 import { removeItem } from 'app/frontend/services/api/removeItem';
 import { toggleItem } from 'app/frontend/services/api/toggleItem';
 import { updateItemContent } from 'app/frontend/services/api/updateItemContent';
@@ -24,18 +27,30 @@ import produce from 'immer';
 import { Dictionary } from 'lodash';
 import debounce from 'lodash/debounce';
 import find from 'lodash/find';
+import _ from 'lodash/fp';
 import _omitBy from 'lodash/fp/omitBy';
 import keyBy from 'lodash/keyBy';
-import orderBy from 'lodash/orderBy';
-import values from 'lodash/values';
 import { GetServerSideProps } from 'next';
-import { FunctionComponent, useCallback, useRef, useState } from 'react';
+import {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'react-toastify';
 import { cleanList } from '../../app/frontend/services/api/clean';
 
-const ListPage: FunctionComponent<{ list: ListEntity }> = ({
-  list: rawList,
-}) => {
+type Props = {
+  list: ListEntity;
+  listId: string;
+};
+
+const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
+  useEffect(() => {
+    getListById({ listId }).then(console.log);
+  }, [listId]);
+
   const [itemDict, setItemDict] = useState<Dictionary<DisplayableItem>>(
     keyBy(
       rawList.items.map((item) => ({ ...item, displayId: item.id })),
@@ -200,28 +215,27 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }, 800),
   );
 
-  const handleContentUpdate = (displayId: string) => async (
-    newContent: string,
-  ) => {
-    const item = itemDict[displayId];
-    const itemId = item.id;
+  const handleContentUpdate =
+    (displayId: string) => async (newContent: string) => {
+      const item = itemDict[displayId];
+      const itemId = item.id;
 
-    if (!item || !itemId) {
-      return;
-    }
+      if (!item || !itemId) {
+        return;
+      }
 
-    setItemByDisplayId(displayId, { ...item, content: newContent });
+      setItemByDisplayId(displayId, { ...item, content: newContent });
 
-    try {
-      await updateContent.current({
-        itemId,
-        listId: rawList.id,
-        content: newContent,
-      });
-    } catch (error) {
-      toast.error('Could not update');
-    }
-  };
+      try {
+        await updateContent.current({
+          itemId,
+          listId: rawList.id,
+          content: newContent,
+        });
+      } catch (error) {
+        toast.error('Could not update');
+      }
+    };
 
   const handleAddItem = async (
     params: Partial<Omit<ItemEntity, 'id'>> = {},
@@ -332,28 +346,61 @@ const ListPage: FunctionComponent<{ list: ListEntity }> = ({
     }
   };
 
+  const { user: currentUser } = useAuth();
+
+  const itemsOrder =
+    (currentUser?.id ? rawList.order?.[currentUser.id] : []) ?? [];
+
+  const orderedItems = _.pipe<[string[]], DisplayableItem[], DisplayableItem[]>(
+    _.map((id) => itemDict[id]),
+    _.filter(_.negate(_.isNil)),
+  )(itemsOrder);
+
+  const unorderedItems = _.pipe<
+    [Dictionary<DisplayableItem>],
+    DisplayableItem[],
+    DisplayableItem[],
+    DisplayableItem[]
+  >(
+    _.values,
+    _.filter((item) => !itemsOrder.includes(item.displayId)),
+    _.orderBy<DisplayableItem>(['done', 'displayId'])(['asc', 'desc']),
+  )(itemDict);
+
+  const items = [...orderedItems, ...unorderedItems];
+
+  const updateOrder = async (order: string[]) => {
+    await orderItems({
+      listId: rawList.id,
+      itemIds: order,
+    });
+  };
+
   return (
     <ListScreen
       listId={rawList.id}
       name={name}
       createdAt={rawList.createdAt}
       setName={handleNameChange}
-      items={orderBy(values(itemDict), ['done', 'displayId'], ['asc', 'desc'])}
+      items={items}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
       addItem={handleAddItem}
       removeItem={handleRemoveItem}
       creatorId={rawList.creator.id}
       clean={handleClean}
+      handleOrderChange={updateOrder}
     />
   );
 };
 
 export default ListPage;
 
-export const getServerSideProps: GetServerSideProps<{
-  list: ListEntity;
-}> = async ({ query, req, res }) => {
+export const getServerSideProps: GetServerSideProps<Props> = async ({
+  query,
+  req,
+  res,
+}) => {
   try {
     const { id: queryId } = query;
 
@@ -369,21 +416,21 @@ export const getServerSideProps: GetServerSideProps<{
       };
     }
 
-    const [id] = Array.isArray(queryId) ? queryId : [queryId];
+    const [listId] = Array.isArray(queryId) ? queryId : [queryId];
 
     const list = await getListByIdUsecaseFactory({
       listRepository,
     })({
-      listId: id,
+      listId: listId,
       user: currentUser,
     });
 
-    if (!list) {
+    if (!listId || !list) {
       return { notFound: true };
     }
 
     return {
-      props: { list },
+      props: { list, listId },
     };
   } catch (error) {
     if (!(error instanceof ForbiddenError)) {

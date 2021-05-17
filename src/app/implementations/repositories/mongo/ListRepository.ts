@@ -215,6 +215,19 @@ export function buildMongoListRepository(): ListRepository {
 
       return idsToRemove;
     },
+    async changeItemsOrder({ listId, userId, itemIds }) {
+      const listCollection = await getListCollection();
+
+      const filter = {
+        _id: new ObjectId(listId),
+      };
+
+      await listCollection.updateOne(filter, {
+        $set: {
+          [`order.${userId}`]: itemIds,
+        },
+      });
+    },
   };
 }
 
