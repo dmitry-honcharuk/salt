@@ -1,5 +1,5 @@
 import { useAuth } from '@ficdev/auth-react';
-import { appAuthServiceFactory, listRepository } from 'app/dependencies';
+import { appAuthServiceFactory } from 'app/dependencies';
 import { ListScreen } from 'app/frontend/screens/ListScreen';
 import { addItem } from 'app/frontend/services/api/addItem';
 import { getListById } from 'app/frontend/services/api/getListById';
@@ -22,7 +22,6 @@ import {
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
 import { ForbiddenError } from 'core/errors/ForbiddenError';
-import { getListByIdUsecaseFactory } from 'core/use-cases/getListById';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
 import debounce from 'lodash/debounce';
@@ -39,27 +38,35 @@ import {
   useState,
 } from 'react';
 import { toast } from 'react-toastify';
+import { LoadingScreen } from '../../app/frontend/screens/LoadingScreen';
 import { cleanList } from '../../app/frontend/services/api/clean';
 
 type Props = {
-  list: ListEntity;
   listId: string;
 };
 
-const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
-  useEffect(() => {
-    getListById({ listId }).then(console.log);
-  }, [listId]);
-
-  const [itemDict, setItemDict] = useState<Dictionary<DisplayableItem>>(
-    keyBy(
-      rawList.items.map((item) => ({ ...item, displayId: item.id })),
-      'displayId',
-    ),
-  );
-  const [name, setName] = useState(rawList.name);
-
+const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
+  const [list, setList] = useState<ListEntity | null>(null);
+  const [itemDict, setItemDict] = useState<Dictionary<DisplayableItem>>({});
+  const [name, setName] = useState<string>();
   const emit = useEmit();
+
+  useEffect(() => {
+    getListById({ listId: currentListId }).then((list) => {
+      if (!list) {
+        return;
+      }
+
+      setList(list);
+      setItemDict(
+        keyBy(
+          list.items.map((item) => ({ ...item, displayId: item.id })),
+          'displayId',
+        ),
+      );
+      setName(list.name);
+    });
+  }, [currentListId]);
 
   const setItemByDisplayId = useCallback(
     (displayId: string, item: DisplayableItem) => {
@@ -85,13 +92,13 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     TOPICS.ITEM_ADDED,
     useCallback(
       ({ listId, item }) => {
-        if (listId !== rawList.id) {
+        if (listId !== currentListId) {
           return;
         }
 
         setItemByDisplayId(item.id, { ...item, displayId: item.id });
       },
-      [rawList.id, setItemByDisplayId],
+      [currentListId, setItemByDisplayId],
     ),
   );
 
@@ -99,7 +106,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     TOPICS.ITEM_TOGGLED,
     useCallback(
       ({ listId, itemId, done }) => {
-        if (listId !== rawList.id) {
+        if (listId !== currentListId) {
           return;
         }
 
@@ -111,7 +118,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
 
         setItemByDisplayId(item.displayId, { ...item, done });
       },
-      [itemDict, rawList.id, setItemByDisplayId],
+      [itemDict, currentListId, setItemByDisplayId],
     ),
   );
 
@@ -119,7 +126,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     TOPICS.ITEM_CONTENT_CHANGED,
     useCallback(
       ({ listId, itemId, content }) => {
-        if (listId !== rawList.id) {
+        if (listId !== currentListId) {
           return;
         }
 
@@ -131,7 +138,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
 
         setItemByDisplayId(item.displayId, { ...item, content });
       },
-      [itemDict, rawList.id, setItemByDisplayId],
+      [itemDict, currentListId, setItemByDisplayId],
     ),
   );
 
@@ -139,13 +146,13 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     TOPICS.LIST_NAME_CHANGED,
     useCallback(
       ({ listId, name }) => {
-        if (listId !== rawList.id) {
+        if (listId !== currentListId) {
           return;
         }
 
         setName(name);
       },
-      [rawList.id],
+      [currentListId],
     ),
   );
 
@@ -153,7 +160,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     TOPICS.ITEM_REMOVED,
     useCallback(
       ({ listId, itemId }) => {
-        if (listId !== rawList.id) {
+        if (listId !== currentListId) {
           return;
         }
 
@@ -165,35 +172,26 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
 
         deleteItemByDisplayId(item.displayId);
       },
-      [deleteItemByDisplayId, itemDict, rawList.id],
+      [deleteItemByDisplayId, itemDict, currentListId],
     ),
   );
 
-  const handleItemToggle = (displayId: string) => async () => {
-    const item = itemDict[displayId];
-    const itemId = item.id;
-
-    if (!item || !itemId) {
-      return;
-    }
-
-    const isDone = item.done;
-
-    setItemByDisplayId(displayId, { ...item, done: !isDone });
-
-    try {
-      await toggleItem({ listId: rawList.id, itemId });
-
-      emit<ItemToggledEvent>(TOPICS.ITEM_TOGGLED, {
-        itemId,
-        listId: rawList.id,
-        done: !isDone,
+  type UpdateName = (options: {
+    listId: string;
+    name: string;
+  }) => Promise<void>;
+  const updateName = useRef(
+    debounce<UpdateName>(async ({ listId, name }) => {
+      await updateListName({
+        listId,
+        name,
       });
-    } catch (error) {
-      setItemByDisplayId(displayId, { ...item, done: isDone });
-      toast.error('Could not update');
-    }
-  };
+      emit<ListNameChangedEvent>(TOPICS.LIST_NAME_CHANGED, {
+        listId,
+        name,
+      });
+    }, 800),
+  );
 
   type UpdateItem = (options: {
     itemId: string;
@@ -215,6 +213,38 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     }, 800),
   );
 
+  const { user: currentUser } = useAuth();
+
+  if (!list) {
+    return <LoadingScreen />;
+  }
+
+  const handleItemToggle = (displayId: string) => async () => {
+    const item = itemDict[displayId];
+    const itemId = item.id;
+
+    if (!item || !itemId) {
+      return;
+    }
+
+    const isDone = item.done;
+
+    setItemByDisplayId(displayId, { ...item, done: !isDone });
+
+    try {
+      await toggleItem({ listId: currentListId, itemId });
+
+      emit<ItemToggledEvent>(TOPICS.ITEM_TOGGLED, {
+        itemId,
+        listId: currentListId,
+        done: !isDone,
+      });
+    } catch (error) {
+      setItemByDisplayId(displayId, { ...item, done: isDone });
+      toast.error('Could not update');
+    }
+  };
+
   const handleContentUpdate =
     (displayId: string) => async (newContent: string) => {
       const item = itemDict[displayId];
@@ -229,7 +259,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
       try {
         await updateContent.current({
           itemId,
-          listId: rawList.id,
+          listId: currentListId,
           content: newContent,
         });
       } catch (error) {
@@ -244,7 +274,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
       const { content = '', done = false } = params;
 
       const displayId = [
-        rawList.id,
+        currentListId,
         Date.now(),
         Object.keys(itemDict).length + 1,
       ].join('-');
@@ -257,7 +287,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
         createdAt: null,
       });
 
-      const item = await addItem({ listId: rawList.id, content, done });
+      const item = await addItem({ listId: currentListId, content, done });
 
       setItemByDisplayId(displayId, {
         ...item,
@@ -265,7 +295,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
       });
 
       emit<ItemAddedEvent>(TOPICS.ITEM_ADDED, {
-        listId: rawList.id,
+        listId: currentListId,
         item: item,
       });
     } catch (error) {
@@ -273,30 +303,13 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
     }
   };
 
-  type UpdateName = (options: {
-    listId: string;
-    name: string;
-  }) => Promise<void>;
-  const updateName = useRef(
-    debounce<UpdateName>(async ({ listId, name }) => {
-      await updateListName({
-        listId,
-        name,
-      });
-      emit<ListNameChangedEvent>(TOPICS.LIST_NAME_CHANGED, {
-        listId,
-        name,
-      });
-    }, 800),
-  );
-
   const handleNameChange = async (newName: string) => {
     const oldName = name;
 
     setName(newName);
 
     try {
-      await updateName.current({ listId: rawList.id, name: newName });
+      await updateName.current({ listId: currentListId, name: newName });
     } catch (error) {
       setName(oldName);
       toast.error('Could not update');
@@ -315,11 +328,11 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
 
     try {
       await removeItem({
-        listId: rawList.id,
+        listId: currentListId,
         itemId,
       });
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
-        listId: rawList.id,
+        listId: currentListId,
         itemId,
       });
     } catch (e) {
@@ -328,7 +341,7 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
   };
 
   const handleClean = async () => {
-    const removedIds = await cleanList(rawList.id);
+    const removedIds = await cleanList(currentListId);
 
     if (!removedIds.length) {
       return;
@@ -340,16 +353,14 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
 
     for (const removedId of removedIds) {
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
-        listId: rawList.id,
+        listId: currentListId,
         itemId: removedId,
       });
     }
   };
 
-  const { user: currentUser } = useAuth();
-
   const itemsOrder =
-    (currentUser?.id ? rawList.order?.[currentUser.id] : []) ?? [];
+    (currentUser?.id ? list.order?.[currentUser.id] : []) ?? [];
 
   const orderedItems = _.pipe<[string[]], DisplayableItem[], DisplayableItem[]>(
     _.map((id) => itemDict[id]),
@@ -371,23 +382,23 @@ const ListPage: FunctionComponent<Props> = ({ list: rawList, listId }) => {
 
   const updateOrder = async (order: string[]) => {
     await orderItems({
-      listId: rawList.id,
+      listId: currentListId,
       itemIds: order,
     });
   };
 
   return (
     <ListScreen
-      listId={rawList.id}
+      listId={currentListId}
       name={name}
-      createdAt={rawList.createdAt}
+      createdAt={list.createdAt}
       setName={handleNameChange}
       items={items}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
       addItem={handleAddItem}
       removeItem={handleRemoveItem}
-      creatorId={rawList.creator.id}
+      creatorId={list.creator.id}
       clean={handleClean}
       handleOrderChange={updateOrder}
     />
@@ -418,19 +429,12 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({
 
     const [listId] = Array.isArray(queryId) ? queryId : [queryId];
 
-    const list = await getListByIdUsecaseFactory({
-      listRepository,
-    })({
-      listId: listId,
-      user: currentUser,
-    });
-
-    if (!listId || !list) {
+    if (!listId) {
       return { notFound: true };
     }
 
     return {
-      props: { list, listId },
+      props: { listId },
     };
   } catch (error) {
     if (!(error instanceof ForbiddenError)) {

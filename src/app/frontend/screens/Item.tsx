@@ -8,7 +8,7 @@ import {
   getLighterColor,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
-import { FunctionComponent, useEffect, useRef } from 'react';
+import React, { FunctionComponent, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 type Props = {
@@ -39,14 +39,7 @@ export const Item: FunctionComponent<Props> = ({
     }
   }, [focused]);
 
-  const icon = moving
-    ? DragIndicatorIcon
-    : pending
-    ? Save
-    : done
-    ? CheckBoxIcon
-    : CheckBoxOutlineBlankIcon;
-  const lastContentRef = useRef<string | null>(null);
+  const icon = pending ? Save : done ? CheckBoxIcon : CheckBoxOutlineBlankIcon;
 
   return (
     <Root>
@@ -60,15 +53,8 @@ export const Item: FunctionComponent<Props> = ({
         done={done}
         value={content}
         disabled={pending || moving}
-        onKeyDown={() => {
-          lastContentRef.current = content;
-        }}
         onKeyUp={({ key }) => {
-          if (
-            key === 'Backspace' &&
-            content === lastContentRef.current &&
-            content === ''
-          ) {
+          if (key === 'Backspace' && content === '') {
             onRemove();
           }
         }}
@@ -77,6 +63,7 @@ export const Item: FunctionComponent<Props> = ({
         }}
         ref={inputRef}
       />
+      <IconBase as={DragIndicatorIcon} />
     </Root>
   );
 };
@@ -100,15 +87,10 @@ const blink = (color: string) => keyframes`
 
 export const IconBase = styled.svg`
   height: ${getSpaceSet(6)};
-  margin-right: ${getSpaceSet(2)};
-  color: ${getColor('main')};
+  fill: ${getColor('main')};
 `;
 
 const Icon = styled(IconBase)<{ done: boolean; pending: boolean }>`
-  height: ${getSpaceSet(6)};
-  margin-right: ${getSpaceSet(2)};
-  fill: ${getColor('main')};
-
   animation: ${({ theme }) => blink(getColor('main')({ theme }))} 800ms linear
     alternate;
 
@@ -117,6 +99,7 @@ const Icon = styled(IconBase)<{ done: boolean; pending: boolean }>`
 
 export const Input = styled(BaseInput)<{ done?: boolean }>`
   flex-grow: 1;
+  font-size: 1.2rem;
 
   color: ${({ done, theme }) =>
     done ? getLighterColor('text', 2)({ theme }) : getColor('text')({ theme })};

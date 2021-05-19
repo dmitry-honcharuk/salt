@@ -2,7 +2,12 @@ import { useAuth } from '@ficdev/auth-react';
 import { CleaningServices } from '@styled-icons/material/CleaningServices';
 import { Tune } from '@styled-icons/material/Tune';
 import { Layout } from 'app/frontend/common/Layout';
-import { getColor, getLighterColor, getSpacePx, getSpaceSet, } from 'app/frontend/theme-selectors';
+import {
+  getColor,
+  getLighterColor,
+  getSpacePx,
+  getSpaceSet,
+} from 'app/frontend/theme-selectors';
 import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ItemEntity } from 'core/entities/Item';
@@ -31,8 +36,6 @@ type Props = {
   creatorId: string;
   handleOrderChange: (ids: string[]) => void;
 };
-
-// @TODO Fix dragg cache problem (could not drag after refresh)
 
 export const ListScreen: FunctionComponent<Props> = ({
   listId,
@@ -96,16 +99,15 @@ export const ListScreen: FunctionComponent<Props> = ({
       <DraggableList
         items={items.map((item) => ({
           ...item,
-          id: item.id ?? item.displayId,
+          key: item.id ?? item.displayId,
         }))}
         onDragEnd={(items) => {
-          handleOrderChange(items.map((item) => item.id));
+          handleOrderChange(items.map((item) => item.id || item.displayId));
         }}
         renderItem={({ id, displayId, content, done }) => (
           <ListItem key={displayId}>
             <Item
               pending={!id}
-              moving
               content={content}
               done={done}
               onToggle={toggleItem(displayId)}
@@ -136,7 +138,7 @@ const NameInput = styled.input`
   color: ${getLighterColor('text', 1)};
   border: none;
   border-bottom: ${(p) =>
-  p.disabled ? 'none' : `1px dashed ${getColor('nameFieldBorder')(p)}`};
+    p.disabled ? 'none' : `1px dashed ${getColor('nameFieldBorder')(p)}`};
   border-radius: 0;
   padding: ${getSpaceSet(1, 2)};
   font-size: 1.5rem;

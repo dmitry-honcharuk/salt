@@ -12,13 +12,13 @@ const reorder = (list: any[], startIndex: number, endIndex: number) => {
   return result;
 };
 
-interface Props<Item extends { id: string }> {
+interface Props<Item extends { key: string }> {
   items: Item[];
   renderItem: (item: Item) => React.ReactNode;
   onDragEnd: (items: Item[]) => void;
 }
 
-export function DraggableList<T extends { id: string }>({
+export function DraggableList<T extends { key: string }>({
   items,
   renderItem,
   onDragEnd: handleDragEnd,
