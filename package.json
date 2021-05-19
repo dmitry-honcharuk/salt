@@ -12,6 +12,7 @@
     "@ficdev/auth-express": "^0.0.5",
     "@ficdev/auth-react": "^0.0.4",
     "@styled-icons/bootstrap": "^10.29.0",
+    "@styled-icons/evaicons-outline": "^10.18.0",
     "@styled-icons/material": "^10.28.0",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
@@ -34,6 +35,7 @@
     "node-fetch": "^2.6.1",
     "query-string": "^7.0.0",
     "react": "^17.0.2",
+    "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.2",
     "react-hook-form": "^7.0.7",
     "react-toastify": "^7.0.3",
@@ -53,6 +55,7 @@
     "@types/node": "^14.14.31",
     "@types/node-fetch": "^2.5.10",
     "@types/react": "^17.0.3",
+    "@types/react-beautiful-dnd": "^13.0.0",
     "@types/styled-components": "^5.1.7",
     "typescript": "^4.2.2"
   }

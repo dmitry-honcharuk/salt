@@ -1,17 +1,10 @@
-import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
-export function addItemUsecaseFactory({ listRepository }: Deps) {
-  return async ({
-    listId,
-    content,
-    done = false,
-    createdAt = Date.now(),
-    user,
-  }: Input): Promise<ItemEntity> => {
+export function changeOrderUsecaseFactory({ listRepository }: Deps) {
+  return async ({ listId, user, itemIds }: Input): Promise<void> => {
     if (!user) {
       throw new CoreError('Forbidden');
     }
@@ -20,24 +13,21 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
       throw new CoreError('List id is required');
     }
 
+    if (!itemIds?.length) {
+      throw new CoreError('Item ids are required');
+    }
+
     const list = await listRepository.getListById(listId);
 
     if (!list || !isCreatorOrParticipant(user, list)) {
       throw new CoreError('Forbidden');
     }
 
-    const item = await listRepository.addItemToList(listId, {
+    await listRepository.changeItemsOrder({
+      listId,
       userId: user.id,
-      content: content ?? '',
-      done,
-      createdAt,
+      itemIds,
     });
-
-    if (!item) {
-      throw new CoreError('Could not add item');
-    }
-
-    return item;
   };
 }
 
@@ -46,8 +36,6 @@ type Deps = {
 };
 type Input = {
   listId?: string;
-  content?: string;
-  done?: boolean;
-  createdAt?: number;
   user?: UserEntity | null;
+  itemIds?: [];
 };

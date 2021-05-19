@@ -1,5 +1,6 @@
 import { CheckBox as CheckBoxIcon } from '@styled-icons/material/CheckBox';
 import { CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@styled-icons/material/CheckBoxOutlineBlank';
+import { DragIndicator as DragIndicatorIcon } from '@styled-icons/material/DragIndicator';
 import { Save } from '@styled-icons/material/Save';
 import { BaseInput } from 'app/frontend/common/BaseInput';
 import {
@@ -12,7 +13,7 @@ import styled, { keyframes } from 'styled-components';
 
 type Props = {
   content: string;
-  done: boolean;
+  done?: boolean;
   onToggle: () => void;
   onItemChange: (content: string) => void;
   onRemove: () => void;
@@ -21,7 +22,7 @@ type Props = {
 };
 export const Item: FunctionComponent<Props> = ({
   content,
-  done,
+  done = false,
   onToggle,
   onItemChange,
   onRemove,
@@ -37,7 +38,6 @@ export const Item: FunctionComponent<Props> = ({
   }, [focused]);
 
   const icon = pending ? Save : done ? CheckBoxIcon : CheckBoxOutlineBlankIcon;
-  const lastContentRef = useRef<string | null>(null);
 
   return (
     <Root>
@@ -46,15 +46,8 @@ export const Item: FunctionComponent<Props> = ({
         done={done}
         value={content}
         disabled={pending}
-        onKeyDown={() => {
-          lastContentRef.current = content;
-        }}
         onKeyUp={({ key }) => {
-          if (
-            key === 'Backspace' &&
-            content === lastContentRef.current &&
-            content === ''
-          ) {
+          if (key === 'Backspace' && content === '') {
             onRemove();
           }
         }}
@@ -63,6 +56,7 @@ export const Item: FunctionComponent<Props> = ({
         }}
         ref={inputRef}
       />
+      {!pending && <IconBase as={DragIndicatorIcon} />}
     </Root>
   );
 };
@@ -86,15 +80,10 @@ const blink = (color: string) => keyframes`
 
 export const IconBase = styled.svg`
   height: ${getSpaceSet(6)};
-  margin-right: ${getSpaceSet(2)};
-  color: ${getColor('main')};
+  fill: ${getColor('main')};
 `;
 
 const Icon = styled(IconBase)<{ done: boolean; pending: boolean }>`
-  height: ${getSpaceSet(6)};
-  margin-right: ${getSpaceSet(2)};
-  fill: ${getColor('main')};
-
   animation: ${({ theme }) => blink(getColor('main')({ theme }))} 800ms linear
     alternate;
 
@@ -103,6 +92,7 @@ const Icon = styled(IconBase)<{ done: boolean; pending: boolean }>`
 
 export const Input = styled(BaseInput)<{ done?: boolean }>`
   flex-grow: 1;
+  font-size: 1.2rem;
 
   color: ${({ done, theme }) =>
     done ? getLighterColor('text', 2)({ theme }) : getColor('text')({ theme })};

@@ -38,7 +38,13 @@ export interface ListRepository {
   }): Promise<void>;
 
   removeDoneItems(listId: string): Promise<string[] | null>;
+
+  changeItemsOrder(options: {
+    listId: string;
+    userId: string;
+    itemIds: string[];
+  }): Promise<void>;
 }
 
-type AddItem = Omit<ItemEntity, 'id'>;
+type AddItem = Omit<ItemEntity, 'id'> & { userId: string };
 export type ParticipantToAdd = WithRequiredField<ParticipantEntity, 'joinedAt'>;
