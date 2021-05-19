@@ -46,5 +46,5 @@ export interface ListRepository {
   }): Promise<void>;
 }
 
-type AddItem = Omit<ItemEntity, 'id'>;
+type AddItem = Omit<ItemEntity, 'id'> & { userId: string };
 export type ParticipantToAdd = WithRequiredField<ParticipantEntity, 'joinedAt'>;

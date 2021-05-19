@@ -10,7 +10,6 @@ import { updateItemContent } from 'app/frontend/services/api/updateItemContent';
 import { updateListName } from 'app/frontend/services/api/updateListName';
 import { useEmit } from 'app/frontend/sockets/hooks/useEmit';
 import { useSubscribe } from 'app/frontend/sockets/hooks/useSubscribe';
-import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import {
   ItemAddedEvent,
   ItemContentChangedEvent,
@@ -40,6 +39,7 @@ import {
 import { toast } from 'react-toastify';
 import { LoadingScreen } from '../../app/frontend/screens/LoadingScreen';
 import { cleanList } from '../../app/frontend/services/api/clean';
+import { PendingItem } from '../../app/frontend/types/PendingItem';
 
 type Props = {
   listId: string;
@@ -47,7 +47,8 @@ type Props = {
 
 const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
   const [list, setList] = useState<ListEntity | null>(null);
-  const [itemDict, setItemDict] = useState<Dictionary<DisplayableItem>>({});
+  const [itemDict, setItemDict] = useState<Dictionary<ItemEntity>>({});
+  const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [name, setName] = useState<string>();
   const emit = useEmit();
 
@@ -68,18 +69,18 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     });
   }, [currentListId]);
 
-  const setItemByDisplayId = useCallback(
-    (displayId: string, item: DisplayableItem) => {
-      setItemDict((dict) => ({ ...dict, [displayId]: item }));
+  const setItemById = useCallback(
+    (id: string, item: ItemEntity) => {
+      setItemDict((dict) => ({ ...dict, [id]: item }));
     },
     [setItemDict],
   );
 
-  const deleteItemByDisplayId = useCallback(
-    (displayId: string) => {
+  const deleteItemById = useCallback(
+    (id: string) => {
       setItemDict((dict) => {
         return produce(dict, (draft) => {
-          delete draft[displayId];
+          delete draft[id];
 
           return draft;
         });
@@ -96,9 +97,9 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
           return;
         }
 
-        setItemByDisplayId(item.id, { ...item, displayId: item.id });
+        setItemById(item.id, item);
       },
-      [currentListId, setItemByDisplayId],
+      [currentListId, setItemById],
     ),
   );
 
@@ -116,9 +117,9 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
           return;
         }
 
-        setItemByDisplayId(item.displayId, { ...item, done });
+        setItemById(item.id, { ...item, done });
       },
-      [itemDict, currentListId, setItemByDisplayId],
+      [itemDict, currentListId, setItemById],
     ),
   );
 
@@ -136,9 +137,9 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
           return;
         }
 
-        setItemByDisplayId(item.displayId, { ...item, content });
+        setItemById(item.id, { ...item, content });
       },
-      [itemDict, currentListId, setItemByDisplayId],
+      [itemDict, currentListId, setItemById],
     ),
   );
 
@@ -170,9 +171,9 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
           return;
         }
 
-        deleteItemByDisplayId(item.displayId);
+        deleteItemById(item.id);
       },
-      [deleteItemByDisplayId, itemDict, currentListId],
+      [deleteItemById, itemDict, currentListId],
     ),
   );
 
@@ -219,17 +220,16 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     return <LoadingScreen />;
   }
 
-  const handleItemToggle = (displayId: string) => async () => {
-    const item = itemDict[displayId];
-    const itemId = item.id;
+  const handleItemToggle = (itemId: string) => async () => {
+    const item = itemDict[itemId];
 
-    if (!item || !itemId) {
+    if (!item) {
       return;
     }
 
     const isDone = item.done;
 
-    setItemByDisplayId(displayId, { ...item, done: !isDone });
+    setItemById(itemId, { ...item, done: !isDone });
 
     try {
       await toggleItem({ listId: currentListId, itemId });
@@ -240,7 +240,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
         done: !isDone,
       });
     } catch (error) {
-      setItemByDisplayId(displayId, { ...item, done: isDone });
+      setItemById(itemId, { ...item, done: isDone });
       toast.error('Could not update');
     }
   };
@@ -254,7 +254,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
         return;
       }
 
-      setItemByDisplayId(displayId, { ...item, content: newContent });
+      setItemById(displayId, { ...item, content: newContent });
 
       try {
         await updateContent.current({
@@ -273,26 +273,40 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     try {
       const { content = '', done = false } = params;
 
-      const displayId = [
+      const tempId = [
         currentListId,
         Date.now(),
         Object.keys(itemDict).length + 1,
       ].join('-');
 
-      setItemByDisplayId(displayId, {
-        id: null,
+      const pendingItem: PendingItem = {
         content,
         done,
-        displayId,
-        createdAt: null,
-      });
+        tempId: tempId,
+      };
+
+      setPendingItems((items) => [pendingItem, ...items]);
 
       const item = await addItem({ listId: currentListId, content, done });
 
-      setItemByDisplayId(displayId, {
-        ...item,
-        displayId,
+      setPendingItems((items) =>
+        items.filter((item) => item.tempId !== tempId),
+      );
+      setItemById(item.id, item);
+
+      const newList = produce(list as ListEntity, (draft) => {
+        if (!currentUser) {
+          return;
+        }
+
+        draft.order = draft.order ?? {};
+        draft.order[currentUser.id] = [
+          item.id,
+          ...(draft.order[currentUser.id] || []),
+        ];
       });
+
+      setList(newList);
 
       emit<ItemAddedEvent>(TOPICS.ITEM_ADDED, {
         listId: currentListId,
@@ -324,7 +338,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
       return;
     }
 
-    deleteItemByDisplayId(displayId);
+    deleteItemById(displayId);
 
     try {
       await removeItem({
@@ -336,7 +350,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
         itemId,
       });
     } catch (e) {
-      setItemByDisplayId(displayId, { ...item });
+      setItemById(displayId, { ...item });
     }
   };
 
@@ -347,9 +361,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
       return;
     }
 
-    setItemDict(
-      _omitBy<DisplayableItem>(({ id }) => id && removedIds.includes(id)),
-    );
+    setItemDict(_omitBy<ItemEntity>(({ id }) => id && removedIds.includes(id)));
 
     for (const removedId of removedIds) {
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
@@ -362,25 +374,36 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
   const itemsOrder =
     (currentUser?.id ? list.order?.[currentUser.id] : []) ?? [];
 
-  const orderedItems = _.pipe<[string[]], DisplayableItem[], DisplayableItem[]>(
+  const orderedItems = _.pipe<[string[]], (ItemEntity | null)[], ItemEntity[]>(
     _.map((id) => itemDict[id]),
     _.filter(_.negate(_.isNil)),
   )(itemsOrder);
 
   const unorderedItems = _.pipe<
-    [Dictionary<DisplayableItem>],
-    DisplayableItem[],
-    DisplayableItem[],
-    DisplayableItem[]
+    [Dictionary<ItemEntity>],
+    ItemEntity[],
+    ItemEntity[],
+    ItemEntity[]
   >(
     _.values,
-    _.filter((item) => !itemsOrder.includes(item.displayId)),
-    _.orderBy<DisplayableItem>(['done', 'displayId'])(['asc', 'desc']),
+    _.filter((item) => !itemsOrder.includes(item.id)),
+    _.orderBy<ItemEntity>(['done', 'id'])(['asc', 'desc']),
   )(itemDict);
 
   const items = [...orderedItems, ...unorderedItems];
 
   const updateOrder = async (order: string[]) => {
+    if (!currentUser?.id) {
+      return;
+    }
+
+    const newList = produce(list as ListEntity, (draft) => {
+      draft.order = draft.order ?? {};
+      draft.order[currentUser.id] = order;
+    });
+
+    setList(newList);
+
     await orderItems({
       listId: currentListId,
       itemIds: order,
@@ -394,6 +417,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
       createdAt={list.createdAt}
       setName={handleNameChange}
       items={items}
+      pendingItems={pendingItems}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
       addItem={handleAddItem}

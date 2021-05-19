@@ -8,28 +8,26 @@ import {
   getLighterColor,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
-import React, { FunctionComponent, useEffect, useRef } from 'react';
+import { FunctionComponent, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 type Props = {
   content: string;
-  done: boolean;
+  done?: boolean;
   onToggle: () => void;
   onItemChange: (content: string) => void;
   onRemove: () => void;
   focused?: boolean;
   pending?: boolean;
-  moving?: boolean;
 };
 export const Item: FunctionComponent<Props> = ({
   content,
-  done,
+  done = false,
   onToggle,
   onItemChange,
   onRemove,
   focused = false,
   pending = false,
-  moving = false,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,16 +41,11 @@ export const Item: FunctionComponent<Props> = ({
 
   return (
     <Root>
-      <Icon
-        as={icon}
-        onClick={moving ? undefined : onToggle}
-        done={done}
-        pending={pending}
-      />
+      <Icon as={icon} onClick={onToggle} done={done} pending={pending} />
       <Input
         done={done}
         value={content}
-        disabled={pending || moving}
+        disabled={pending}
         onKeyUp={({ key }) => {
           if (key === 'Backspace' && content === '') {
             onRemove();
@@ -63,7 +56,7 @@ export const Item: FunctionComponent<Props> = ({
         }}
         ref={inputRef}
       />
-      <IconBase as={DragIndicatorIcon} />
+      {!pending && <IconBase as={DragIndicatorIcon} />}
     </Root>
   );
 };

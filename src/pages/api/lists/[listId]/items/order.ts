@@ -16,11 +16,11 @@ async function changeOrder(req: NextApiRequest, res: NextApiResponse) {
 
   const changeOrder = changeOrderUsecaseFactory({ listRepository });
 
-  const item = await changeOrder({
+  await changeOrder({
     user,
     listId,
     itemIds,
   });
 
-  res.json(item);
+  res.json({});
 }

@@ -44,7 +44,7 @@ export function buildMongoListRepository(): ListRepository {
         }))
         .toArray();
     },
-    addItemToList: async (listId, { content, done, createdAt }) => {
+    addItemToList: async (listId, { content, userId, done, createdAt }) => {
       const listCollection = await getListCollection();
       const filter = {
         _id: new ObjectId(listId),
@@ -62,9 +62,13 @@ export function buildMongoListRepository(): ListRepository {
         done,
         createdAt,
       };
+      const order = list.order?.[userId] ?? [];
 
       const { modifiedCount } = await listCollection.updateOne(filter, {
-        $set: { items: [...list.items, item] },
+        $set: {
+          items: [...list.items, item],
+          [`order.${userId}`]: [item.id, ...order],
+        },
       });
 
       if (!modifiedCount) {

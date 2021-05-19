@@ -8,9 +8,9 @@ import {
   getSpacePx,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
-import { DisplayableItem } from 'app/frontend/types/DisplayableItem';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
 import { ItemEntity } from 'core/entities/Item';
+import noop from 'lodash/noop';
 import Link from 'next/link';
 import { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
@@ -19,12 +19,14 @@ import { BackLink } from '../common/BackLink';
 import { DraggableList } from '../common/DraggableList';
 import { Header } from '../common/Header';
 import { LinkBase } from '../common/LinkBase';
+import { PendingItem } from '../types/PendingItem';
 import { Item } from './Item';
 import { NewItemRow } from './NewItemRow';
 
 type Props = {
   listId: string;
-  items: DisplayableItem[];
+  items: ItemEntity[];
+  pendingItems: PendingItem[];
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   removeItem: (id: string) => () => void;
@@ -40,6 +42,7 @@ type Props = {
 export const ListScreen: FunctionComponent<Props> = ({
   listId,
   items,
+  pendingItems,
   toggleItem,
   updateContent,
   removeItem,
@@ -96,23 +99,37 @@ export const ListScreen: FunctionComponent<Props> = ({
         <Actions items={[settingsLink, removeDone]} />
       </Header>
       <NewItemRow onCreate={addItem} />
+      {!!pendingItems.length && (
+        <Ul>
+          {pendingItems.map(({ tempId, content }) => (
+            <ListItem key={tempId} as='li'>
+              <Item
+                pending
+                content={content}
+                onRemove={noop}
+                onItemChange={noop}
+                onToggle={noop}
+              />
+            </ListItem>
+          ))}
+        </Ul>
+      )}
       <DraggableList
         items={items.map((item) => ({
           ...item,
-          key: item.id ?? item.displayId,
+          key: item.id,
         }))}
         onDragEnd={(items) => {
-          handleOrderChange(items.map((item) => item.id || item.displayId));
+          handleOrderChange(items.map((item) => item.id));
         }}
-        renderItem={({ id, displayId, content, done }) => (
-          <ListItem key={displayId}>
+        renderItem={({ id, content, done }) => (
+          <ListItem key={id}>
             <Item
-              pending={!id}
               content={content}
               done={done}
-              onToggle={toggleItem(displayId)}
-              onItemChange={updateContent(displayId)}
-              onRemove={removeItem(displayId)}
+              onToggle={toggleItem(id)}
+              onItemChange={updateContent(id)}
+              onRemove={removeItem(id)}
             />
           </ListItem>
         )}
@@ -121,11 +138,13 @@ export const ListScreen: FunctionComponent<Props> = ({
   );
 };
 
-const ListItem = styled.div`
-  border-top: 1px dashed ${getColor('listItemBorder')};
+const Ul = styled.ul`
+  font-size: 20px;
+`;
 
-  :first-child {
-    border-top: none;
+const ListItem = styled.div`
+  :last-child {
+    border-bottom: 1px dashed ${getColor('listItemBorder')};
   }
 `;
 

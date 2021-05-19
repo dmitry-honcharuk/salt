@@ -22,11 +22,10 @@ async function getList(req: NextApiRequest, res: NextApiResponse) {
 
   const getListById = getListByIdUsecaseFactory({ listRepository });
 
-  const list = await getListById({ listId, user })
+  const list = await getListById({ listId, user });
 
   return res.json(list);
 }
-
 
 async function updateItemName(req: NextApiRequest, res: NextApiResponse) {
   const {
