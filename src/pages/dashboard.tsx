@@ -1,12 +1,25 @@
-import { appAuthServiceFactory, listRepository } from 'app/dependencies';
 import { HomeScreen, Props } from 'app/frontend/screens/HomeScreen';
 import { ListEntity } from 'core/entities/List';
-import { getListsUsecaseFactory } from 'core/use-cases/getLists';
-import { GetServerSideProps } from 'next';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useEffect, useRef, useState } from 'react';
+import { LoadingScreen } from '../app/frontend/screens/LoadingScreen';
 import { WelcomeScreen } from '../app/frontend/screens/WelcomeScreen';
+import { getLists } from '../app/frontend/services/api/getLists';
 
-const Dashboard: FunctionComponent<Props> = ({ lists }) => {
+const Dashboard: FunctionComponent<Props> = () => {
+  const [lists, setLists] = useState<ListEntity[]>([]);
+  const pendingRef = useRef(true);
+
+  useEffect(() => {
+    getLists().then((r) => {
+      pendingRef.current = false;
+      setLists(r);
+    });
+  }, []);
+
+  if (pendingRef.current) {
+    return <LoadingScreen />;
+  }
+
   if (!lists.length) {
     return <WelcomeScreen />;
   }
@@ -15,27 +28,3 @@ const Dashboard: FunctionComponent<Props> = ({ lists }) => {
 };
 
 export default Dashboard;
-
-export const getServerSideProps: GetServerSideProps<{
-  lists: ListEntity[];
-}> = async ({ req, res }) => {
-  try {
-    const authService = appAuthServiceFactory(req, res);
-
-    const getLists = getListsUsecaseFactory({
-      listRepository,
-    });
-
-    const lists = await getLists({
-      user: await authService.getCurrentUser(),
-    });
-
-    return {
-      props: { lists },
-    };
-  } catch (e) {
-    return {
-      props: { lists: [] },
-    };
-  }
-};
