@@ -1,5 +1,4 @@
 import { useAuth } from '@ficdev/auth-react';
-import { appAuthServiceFactory } from 'app/dependencies';
 import { ListScreen } from 'app/frontend/screens/ListScreen';
 import { addItem } from 'app/frontend/services/api/addItem';
 import { getListById } from 'app/frontend/services/api/getListById';
@@ -20,7 +19,6 @@ import {
 } from 'app/types/socket';
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
-import { ForbiddenError } from 'core/errors/ForbiddenError';
 import produce from 'immer';
 import { Dictionary } from 'lodash';
 import debounce from 'lodash/debounce';
@@ -28,9 +26,10 @@ import find from 'lodash/find';
 import _ from 'lodash/fp';
 import _omitBy from 'lodash/fp/omitBy';
 import keyBy from 'lodash/keyBy';
-import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import {
   FunctionComponent,
+  ReactElement,
   useCallback,
   useEffect,
   useRef,
@@ -42,32 +41,20 @@ import { cleanList } from '../../app/frontend/services/api/clean';
 import { PendingItem } from '../../app/frontend/types/PendingItem';
 
 type Props = {
-  listId: string;
+  list: ListEntity;
 };
 
-const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
-  const [list, setList] = useState<ListEntity | null>(null);
-  const [itemDict, setItemDict] = useState<Dictionary<ItemEntity>>({});
+const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
+  const [list, setList] = useState(rawList);
+  const [itemDict, setItemDict] = useState<Dictionary<ItemEntity>>(
+    keyBy(
+      list.items.map((item) => ({ ...item, displayId: item.id })),
+      'displayId',
+    ),
+  );
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
-  const [name, setName] = useState<string>();
+  const [name, setName] = useState<string>(list.name);
   const emit = useEmit();
-
-  useEffect(() => {
-    getListById({ listId: currentListId }).then((list) => {
-      if (!list) {
-        return;
-      }
-
-      setList(list);
-      setItemDict(
-        keyBy(
-          list.items.map((item) => ({ ...item, displayId: item.id })),
-          'displayId',
-        ),
-      );
-      setName(list.name);
-    });
-  }, [currentListId]);
 
   const setItemById = useCallback(
     (id: string, item: ItemEntity) => {
@@ -93,13 +80,13 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     TOPICS.ITEM_ADDED,
     useCallback(
       ({ listId, item }) => {
-        if (listId !== currentListId) {
+        if (listId !== list.id) {
           return;
         }
 
         setItemById(item.id, item);
       },
-      [currentListId, setItemById],
+      [list.id, setItemById],
     ),
   );
 
@@ -107,7 +94,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     TOPICS.ITEM_TOGGLED,
     useCallback(
       ({ listId, itemId, done }) => {
-        if (listId !== currentListId) {
+        if (listId !== list.id) {
           return;
         }
 
@@ -119,7 +106,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
 
         setItemById(item.id, { ...item, done });
       },
-      [itemDict, currentListId, setItemById],
+      [itemDict, list.id, setItemById],
     ),
   );
 
@@ -127,7 +114,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     TOPICS.ITEM_CONTENT_CHANGED,
     useCallback(
       ({ listId, itemId, content }) => {
-        if (listId !== currentListId) {
+        if (listId !== list.id) {
           return;
         }
 
@@ -139,7 +126,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
 
         setItemById(item.id, { ...item, content });
       },
-      [itemDict, currentListId, setItemById],
+      [itemDict, list.id, setItemById],
     ),
   );
 
@@ -147,13 +134,13 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     TOPICS.LIST_NAME_CHANGED,
     useCallback(
       ({ listId, name }) => {
-        if (listId !== currentListId) {
+        if (listId !== list.id) {
           return;
         }
 
         setName(name);
       },
-      [currentListId],
+      [list.id],
     ),
   );
 
@@ -161,7 +148,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     TOPICS.ITEM_REMOVED,
     useCallback(
       ({ listId, itemId }) => {
-        if (listId !== currentListId) {
+        if (listId !== list.id) {
           return;
         }
 
@@ -173,7 +160,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
 
         deleteItemById(item.id);
       },
-      [deleteItemById, itemDict, currentListId],
+      [deleteItemById, itemDict, list.id],
     ),
   );
 
@@ -232,11 +219,11 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     setItemById(itemId, { ...item, done: !isDone });
 
     try {
-      await toggleItem({ listId: currentListId, itemId });
+      await toggleItem({ listId: list.id, itemId });
 
       emit<ItemToggledEvent>(TOPICS.ITEM_TOGGLED, {
         itemId,
-        listId: currentListId,
+        listId: list.id,
         done: !isDone,
       });
     } catch (error) {
@@ -259,7 +246,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
       try {
         await updateContent.current({
           itemId,
-          listId: currentListId,
+          listId: list.id,
           content: newContent,
         });
       } catch (error) {
@@ -274,7 +261,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
       const { content = '', done = false } = params;
 
       const tempId = [
-        currentListId,
+        list.id,
         Date.now(),
         Object.keys(itemDict).length + 1,
       ].join('-');
@@ -287,7 +274,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
 
       setPendingItems((items) => [pendingItem, ...items]);
 
-      const item = await addItem({ listId: currentListId, content, done });
+      const item = await addItem({ listId: list.id, content, done });
 
       setPendingItems((items) =>
         items.filter((item) => item.tempId !== tempId),
@@ -309,7 +296,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
       setList(newList);
 
       emit<ItemAddedEvent>(TOPICS.ITEM_ADDED, {
-        listId: currentListId,
+        listId: list.id,
         item: item,
       });
     } catch (error) {
@@ -323,7 +310,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     setName(newName);
 
     try {
-      await updateName.current({ listId: currentListId, name: newName });
+      await updateName.current({ listId: list.id, name: newName });
     } catch (error) {
       setName(oldName);
       toast.error('Could not update');
@@ -342,11 +329,11 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
 
     try {
       await removeItem({
-        listId: currentListId,
+        listId: list.id,
         itemId,
       });
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
-        listId: currentListId,
+        listId: list.id,
         itemId,
       });
     } catch (e) {
@@ -355,7 +342,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
   };
 
   const handleClean = async () => {
-    const removedIds = await cleanList(currentListId);
+    const removedIds = await cleanList(list.id);
 
     if (!removedIds.length) {
       return;
@@ -365,7 +352,7 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
 
     for (const removedId of removedIds) {
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
-        listId: currentListId,
+        listId: list.id,
         itemId: removedId,
       });
     }
@@ -405,14 +392,14 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
     setList(newList);
 
     await orderItems({
-      listId: currentListId,
+      listId: list.id,
       itemIds: order,
     });
   };
 
   return (
     <ListScreen
-      listId={currentListId}
+      listId={list.id}
       name={name}
       createdAt={list.createdAt}
       setName={handleNameChange}
@@ -429,49 +416,32 @@ const ListPage: FunctionComponent<Props> = ({ listId: currentListId }) => {
   );
 };
 
-export default ListPage;
+export default function ListPage(): ReactElement {
+  const {
+    query: { id: queryId },
+  } = useRouter();
 
-export const getServerSideProps: GetServerSideProps<Props> = async ({
-  query,
-  req,
-  res,
-}) => {
-  try {
-    const { id: queryId } = query;
+  const [listId] = Array.isArray(queryId) ? queryId : [queryId];
 
-    const authService = appAuthServiceFactory(req, res);
-    const currentUser = await authService.getCurrentUser();
+  const [list, setList] = useState<ListEntity | null>(null);
 
-    if (!currentUser) {
-      return {
-        redirect: {
-          destination: '/',
-          permanent: true,
-        },
-      };
-    }
-
-    const [listId] = Array.isArray(queryId) ? queryId : [queryId];
-
+  useEffect(() => {
     if (!listId) {
-      return { notFound: true };
+      return;
     }
 
-    return {
-      props: { listId },
-    };
-  } catch (error) {
-    if (!(error instanceof ForbiddenError)) {
-      return {
-        notFound: true,
-      };
-    }
+    getListById({ listId }).then((list) => {
+      if (!list) {
+        return;
+      }
 
-    return {
-      redirect: {
-        destination: '/',
-        permanent: true,
-      },
-    };
+      setList(list);
+    });
+  }, [listId]);
+
+  if (!list) {
+    return <LoadingScreen />;
   }
-};
+
+  return <ListPageView list={list} />;
+}
