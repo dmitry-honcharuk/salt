@@ -1,63 +1,36 @@
-import { GetServerSideProps } from 'next';
-import { FC } from 'react';
-import { appAuthServiceFactory, listRepository } from '../../app/dependencies';
+import { useRouter } from 'next/router';
+import { ReactElement, useEffect, useState } from 'react';
 import { ListSettingsScreen } from '../../app/frontend/screens/ListSettingsScreen';
+import { LoadingScreen } from '../../app/frontend/screens/LoadingScreen';
+import { getListById } from '../../app/frontend/services/api/getListById';
 import { ListEntity } from '../../core/entities/List';
-import { ForbiddenError } from '../../core/errors/ForbiddenError';
-import { getListByIdUsecaseFactory } from '../../core/use-cases/getListById';
 
-const ListSettingsPage: FC<{ list: ListEntity }> = ({ list }) => {
-  return <ListSettingsScreen list={list} />;
-};
+export default function ListSettingsPage(): ReactElement {
+  const {
+    query: { id: queryId },
+  } = useRouter();
 
-export default ListSettingsPage;
+  const [listId] = Array.isArray(queryId) ? queryId : [queryId];
 
-export const getServerSideProps: GetServerSideProps<{
-  list: ListEntity;
-}> = async ({ query, req, res }) => {
-  try {
-    const { id: queryId } = query;
+  const [list, setList] = useState<ListEntity | null>(null);
 
-    const authService = appAuthServiceFactory(req, res);
-    const currentUser = await authService.getCurrentUser();
-
-    if (!currentUser) {
-      return {
-        redirect: {
-          destination: '/',
-          permanent: true,
-        },
-      };
+  useEffect(() => {
+    if (!listId) {
+      return;
     }
 
-    const [id] = Array.isArray(queryId) ? queryId : [queryId];
+    getListById({ listId }).then((list) => {
+      if (!list) {
+        return;
+      }
 
-    const list = await getListByIdUsecaseFactory({
-      listRepository,
-    })({
-      listId: id,
-      user: currentUser,
+      setList(list);
     });
+  }, [listId]);
 
-    if (!list) {
-      return { notFound: true };
-    }
-
-    return {
-      props: { list },
-    };
-  } catch (error) {
-    if (!(error instanceof ForbiddenError)) {
-      return {
-        notFound: true,
-      };
-    }
-
-    return {
-      redirect: {
-        destination: '/',
-        permanent: true,
-      },
-    };
+  if (!list) {
+    return <LoadingScreen />;
   }
-};
+
+  return <ListSettingsScreen list={list} />;
+}

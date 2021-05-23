@@ -1,38 +1,24 @@
-import { appAuthServiceFactory } from 'app/dependencies';
-import { GetServerSideProps } from 'next';
-import { FunctionComponent } from 'react';
+import { useAuth } from '@ficdev/auth-react';
+import { useRouter } from 'next/router';
+import { FunctionComponent, useEffect } from 'react';
 import { AuthenticateScreen } from '../app/frontend/screens/AuthenticateScreen';
-import { ForbiddenError } from '../core/errors/ForbiddenError';
+import { LoadingScreen } from '../app/frontend/screens/LoadingScreen';
 
 const Home: FunctionComponent = () => {
-  return <AuthenticateScreen />;
+  const { user, isFulfilled } = useAuth();
+  const { push } = useRouter();
+
+  useEffect(() => {
+    if (isFulfilled && user) {
+      push('/dashboard');
+    }
+  }, [isFulfilled, push, user]);
+
+  if (isFulfilled && !user) {
+    return <AuthenticateScreen />;
+  }
+
+  return <LoadingScreen />;
 };
 
 export default Home;
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const authService = appAuthServiceFactory(req, res);
-
-  try {
-    const currentUser = await authService.getCurrentUser();
-
-    if (currentUser) {
-      return {
-        redirect: {
-          destination: '/dashboard',
-          permanent: true,
-        },
-      };
-    }
-  } catch (error) {
-    if (!(error instanceof ForbiddenError)) {
-      return {
-        notFound: true,
-      };
-    }
-  }
-
-  return {
-    props: {},
-  };
-};
