@@ -8,7 +8,7 @@ import {
   getLighterColor,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
-import { FunctionComponent, useEffect, useRef } from 'react';
+import { FunctionComponent, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
   onToggle: () => void;
   onItemChange: (content: string) => void;
   onRemove: () => void;
-  focused?: boolean;
   pending?: boolean;
 };
 export const Item: FunctionComponent<Props> = ({
@@ -26,16 +25,9 @@ export const Item: FunctionComponent<Props> = ({
   onToggle,
   onItemChange,
   onRemove,
-  focused = false,
   pending = false,
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (focused && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [focused]);
+  const prevContent = useRef(content);
 
   const icon = pending ? Save : done ? CheckBoxIcon : CheckBoxOutlineBlankIcon;
 
@@ -47,14 +39,19 @@ export const Item: FunctionComponent<Props> = ({
         value={content}
         disabled={pending}
         onKeyUp={({ key }) => {
-          if (key === 'Backspace' && content === '') {
+          if (
+            key === 'Backspace' &&
+            content === '' &&
+            prevContent.current === ''
+          ) {
             onRemove();
           }
+
+          prevContent.current = content;
         }}
         onChange={(event) => {
           onItemChange(event.target.value);
         }}
-        ref={inputRef}
       />
       {!pending && <IconBase as={DragIndicatorIcon} />}
     </Root>
