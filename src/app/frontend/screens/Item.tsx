@@ -18,6 +18,7 @@ type Props = {
   onItemChange: (content: string) => void;
   onRemove: () => void;
   pending?: boolean;
+  draggable?: boolean;
 };
 export const Item: FunctionComponent<Props> = ({
   content,
@@ -26,6 +27,7 @@ export const Item: FunctionComponent<Props> = ({
   onItemChange,
   onRemove,
   pending = false,
+  draggable = false,
 }) => {
   const prevContent = useRef(content);
 
@@ -53,7 +55,7 @@ export const Item: FunctionComponent<Props> = ({
           onItemChange(event.target.value);
         }}
       />
-      {!pending && <IconBase as={DragIndicatorIcon} />}
+      {draggable && <IconBase as={DragIndicatorIcon} />}
     </Root>
   );
 };

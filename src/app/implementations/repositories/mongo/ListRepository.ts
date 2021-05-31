@@ -4,6 +4,7 @@ import {
   ListRepository,
   ParticipantToAdd,
 } from 'core/interfaces/repositories/ListRepository';
+import produce from 'immer';
 import uniqueBy from 'lodash/uniqBy';
 import { Collection, ObjectId, WithId } from 'mongodb';
 import { getDatabase } from './mongo.client';
@@ -44,7 +45,7 @@ export function buildMongoListRepository(): ListRepository {
         }))
         .toArray();
     },
-    addItemToList: async (listId, { content, userId, done, createdAt }) => {
+    addItemToList: async (listId, { content, done, createdAt }) => {
       const listCollection = await getListCollection();
       const filter = {
         _id: new ObjectId(listId),
@@ -62,12 +63,10 @@ export function buildMongoListRepository(): ListRepository {
         done,
         createdAt,
       };
-      const order = list.order?.[userId] ?? [];
 
       const { modifiedCount } = await listCollection.updateOne(filter, {
         $set: {
-          items: [...list.items, item],
-          [`order.${userId}`]: [item.id, ...order],
+          items: [item, ...list.items],
         },
       });
 
@@ -219,16 +218,31 @@ export function buildMongoListRepository(): ListRepository {
 
       return idsToRemove;
     },
-    async changeItemsOrder({ listId, userId, itemIds }) {
+    async changeItemsOrder({ listId, itemIds }) {
       const listCollection = await getListCollection();
 
       const filter = {
         _id: new ObjectId(listId),
       };
 
+      const list = await listCollection.findOne(filter);
+
+      if (!list) {
+        return;
+      }
+
+      const newItems = produce(list.items, (draft) => {
+        draft.sort((a, b) => {
+          const aIndex = itemIds.findIndex((id) => id === a.id);
+          const bIndex = itemIds.findIndex((id) => id === b.id);
+
+          return aIndex - bIndex;
+        });
+      });
+
       await listCollection.updateOne(filter, {
         $set: {
-          [`order.${userId}`]: itemIds,
+          items: newItems,
         },
       });
     },

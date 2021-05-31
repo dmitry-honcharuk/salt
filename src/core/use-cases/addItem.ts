@@ -27,7 +27,6 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
     }
 
     const item = await listRepository.addItemToList(listId, {
-      userId: user.id,
       content: content ?? '',
       done,
       createdAt,
