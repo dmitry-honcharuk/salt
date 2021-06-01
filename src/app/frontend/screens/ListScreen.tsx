@@ -58,7 +58,9 @@ export const ListScreen: FunctionComponent<Props> = ({
   const [pendingClean, setPendingClean] = useState(false);
 
   const undoneItems = items.filter(({ done }) => !done);
-  const doneItems = items.filter(({ done }) => done);
+  const doneItems = items
+    .filter(({ done }) => done)
+    .sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0));
 
   const handleClean = async () => {
     setPendingClean(true);
@@ -103,7 +105,7 @@ export const ListScreen: FunctionComponent<Props> = ({
       {!!pendingItems.length && (
         <Ul>
           {pendingItems.map(({ tempId, content }) => (
-            <ListItem key={tempId} as='li'>
+            <ListItem key={tempId} as="li">
               <Item
                 pending
                 content={content}
@@ -139,7 +141,7 @@ export const ListScreen: FunctionComponent<Props> = ({
       {!!doneItems.length && (
         <Ul>
           {doneItems.map(({ id, content, done }) => (
-            <ListItem key={id} as='li'>
+            <ListItem key={id} as="li">
               <Item
                 done={done}
                 content={content}

@@ -33,7 +33,10 @@ export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError(`No such item found. (${itemId})`);
     }
 
-    await listRepository.removeItem({ listId, itemId });
+    await listRepository.setItems({
+      listId,
+      items: list.items.filter((item) => item.id !== itemId),
+    });
   };
 }
 

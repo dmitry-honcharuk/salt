@@ -1,11 +1,5 @@
-import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
-import {
-  ListRepository,
-  ParticipantToAdd,
-} from 'core/interfaces/repositories/ListRepository';
-import produce from 'immer';
-import uniqueBy from 'lodash/uniqBy';
+import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { Collection, ObjectId, WithId } from 'mongodb';
 import { getDatabase } from './mongo.client';
 
@@ -20,6 +14,7 @@ export function buildMongoListRepository(): ListRepository {
         name,
         creator,
         items: [],
+        doneItems: [],
         createdAt,
       };
 
@@ -45,37 +40,6 @@ export function buildMongoListRepository(): ListRepository {
         }))
         .toArray();
     },
-    addItemToList: async (listId, { content, done, createdAt }) => {
-      const listCollection = await getListCollection();
-      const filter = {
-        _id: new ObjectId(listId),
-      };
-
-      const list = await listCollection.findOne(filter);
-
-      if (!list) {
-        return null;
-      }
-
-      const item: ItemEntity = {
-        id: generateItemId(list),
-        content,
-        done,
-        createdAt,
-      };
-
-      const { modifiedCount } = await listCollection.updateOne(filter, {
-        $set: {
-          items: [item, ...list.items],
-        },
-      });
-
-      if (!modifiedCount) {
-        return null;
-      }
-
-      return item;
-    },
     getListById: async (listId) => {
       const listCollection = await getListCollection();
 
@@ -94,34 +58,7 @@ export function buildMongoListRepository(): ListRepository {
         id: _id.toHexString(),
       };
     },
-    updateItem: async ({ listId, itemId }, itemFields) => {
-      const listCollection = await getListCollection();
-      const filter = {
-        _id: new ObjectId(listId),
-      };
 
-      const list = await listCollection.findOne(filter);
-
-      if (!list) {
-        return null;
-      }
-
-      const updatedItem = { id: itemId, ...itemFields };
-
-      const { modifiedCount } = await listCollection.updateOne(filter, {
-        $set: {
-          items: list.items.map((item) =>
-            item.id === itemId ? updatedItem : item,
-          ),
-        },
-      });
-
-      if (!modifiedCount) {
-        return null;
-      }
-
-      return updatedItem;
-    },
     updateListName: async ({ listId, name, creator }) => {
       const listCollection = await getListCollection();
 
@@ -141,24 +78,6 @@ export function buildMongoListRepository(): ListRepository {
 
       return { id: _id.toHexString(), ...list, name, creator };
     },
-    removeItem: async ({ listId, itemId }) => {
-      const listCollection = await getListCollection();
-      const filter = {
-        _id: new ObjectId(listId),
-      };
-
-      const list = await listCollection.findOne(filter);
-
-      if (!list) {
-        return;
-      }
-
-      await listCollection.updateOne(filter, {
-        $set: {
-          items: list.items.filter((item) => item.id !== itemId),
-        },
-      });
-    },
     removeList: async (listId: string, { creator }) => {
       const listCollection = await getListCollection();
 
@@ -167,83 +86,26 @@ export function buildMongoListRepository(): ListRepository {
         'creator.id': creator.id,
       });
     },
-    addParticipant: async (options: {
-      listId: string;
-      participant: ParticipantToAdd;
-    }): Promise<void> => {
-      const listCollection = await getListCollection();
-
-      const filter = {
-        _id: new ObjectId(options.listId),
-      };
-
-      const list = await listCollection.findOne(filter);
-
-      if (!list) {
-        return;
-      }
-
-      const participants = list.participants ?? [];
-
-      await listCollection.updateOne(filter, {
-        $set: {
-          participants: uniqueBy([...participants, options.participant], 'id'),
-        },
-      });
-    },
-    async removeDoneItems(listId: string): Promise<string[] | null> {
+    async setItems({ listId, items }): Promise<void> {
       const listCollection = await getListCollection();
 
       const filter = {
         _id: new ObjectId(listId),
       };
 
-      const list = await listCollection.findOne(filter);
-
-      if (!list) {
-        return null;
-      }
-
-      const idsToRemove = list.items
-        .filter(({ done }) => done)
-        .map(({ id }) => id);
-
-      if (idsToRemove.length) {
-        await listCollection.updateOne(filter, {
-          $set: {
-            items: list.items.filter(({ done }) => !done),
-          },
-        });
-      }
-
-      return idsToRemove;
+      await listCollection.updateOne(filter, {
+        $set: { items },
+      });
     },
-    async changeItemsOrder({ listId, itemIds }) {
+    async setParticipants({ listId, participants }): Promise<void> {
       const listCollection = await getListCollection();
 
       const filter = {
         _id: new ObjectId(listId),
       };
 
-      const list = await listCollection.findOne(filter);
-
-      if (!list) {
-        return;
-      }
-
-      const newItems = produce(list.items, (draft) => {
-        draft.sort((a, b) => {
-          const aIndex = itemIds.findIndex((id) => id === a.id);
-          const bIndex = itemIds.findIndex((id) => id === b.id);
-
-          return aIndex - bIndex;
-        });
-      });
-
       await listCollection.updateOne(filter, {
-        $set: {
-          items: newItems,
-        },
+        $set: { participants },
       });
     },
   };
@@ -253,8 +115,4 @@ async function getListCollection(): Promise<Collection<WithId<ListSchema>>> {
   const db = await getDatabase();
 
   return db.collection<WithId<ListSchema>>('lists');
-}
-
-function generateItemId(list: WithId<ListSchema>): string {
-  return `${list._id.toHexString()}-${Date.now()}-${list.items.length + 1}`;
 }

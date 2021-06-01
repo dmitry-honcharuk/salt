@@ -19,13 +19,18 @@ export function removeDoneItemsFactory({ listRepository }: Deps) {
       throw new CoreError('Forbidden');
     }
 
-    const removedItemIds = await listRepository.removeDoneItems(listId);
+    const idsToRemove = list.items
+      .filter(({ done }) => done)
+      .map(({ id }) => id);
 
-    if (!removedItemIds) {
-      throw new CoreError('something went wrong');
+    if (idsToRemove.length) {
+      await listRepository.setItems({
+        listId,
+        items: list.items.filter(({ done }) => !done),
+      });
     }
 
-    return removedItemIds;
+    return idsToRemove;
   };
 }
 

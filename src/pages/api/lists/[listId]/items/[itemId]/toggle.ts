@@ -11,6 +11,7 @@ async function toggleItem(req: NextApiRequest, res: NextApiResponse) {
     user,
     query: { listId: listIdQuery, itemId: itemIdQuery },
   } = req;
+
   const listId = normalizeQueryParam(listIdQuery);
   const itemId = normalizeQueryParam(itemIdQuery);
 
@@ -18,7 +19,7 @@ async function toggleItem(req: NextApiRequest, res: NextApiResponse) {
     listRepository,
   });
 
-  const updatedItem = await updateItem({ listId, itemId, user });
+  await updateItem({ listId, itemId, user });
 
-  res.json(updatedItem);
+  res.json({});
 }

@@ -2,7 +2,6 @@ import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
-import omit from 'lodash/omit';
 import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
@@ -47,16 +46,14 @@ export function updateItemContentUsecaseFactory({
       draft.content = content ?? '';
     });
 
-    const result = await listRepository.updateItem(
-      { listId, itemId },
-      omit(updatedItem, ['id']),
-    );
+    await listRepository.setItems({
+      listId,
+      items: list.items.map((item) =>
+        item.id === itemId ? updatedItem : item,
+      ),
+    });
 
-    if (!result) {
-      throw new CoreError('Something went wrong');
-    }
-
-    return result;
+    return updatedItem;
   };
 }
 

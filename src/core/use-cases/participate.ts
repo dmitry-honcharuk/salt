@@ -1,6 +1,10 @@
+import uniqueBy from 'lodash/uniqBy';
 import { UserEntity } from '../entities/User';
 import { CoreError } from '../errors/CoreError';
-import { ListRepository } from '../interfaces/repositories/ListRepository';
+import {
+  JoinedParticipant,
+  ListRepository,
+} from '../interfaces/repositories/ListRepository';
 import { verifyShareToken } from '../utils/share-token';
 
 export function participateUsecaseFactory({ listRepository }: Dependencies) {
@@ -19,12 +23,16 @@ export function participateUsecaseFactory({ listRepository }: Dependencies) {
       throw new CoreError('list not found');
     }
 
-    await listRepository.addParticipant({
+    const participants = (list.participants ?? []) as JoinedParticipant[];
+
+    const participant: JoinedParticipant = {
+      ...currentUser,
+      joinedAt: Date.now(),
+    };
+
+    await listRepository.setParticipants({
       listId,
-      participant: {
-        ...currentUser,
-        joinedAt: Date.now(),
-      },
+      participants: uniqueBy([...participants, participant], 'id'),
     });
 
     return listId;
