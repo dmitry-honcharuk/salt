@@ -1,13 +1,11 @@
-import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import produce from 'immer';
-import omit from 'lodash/omit';
 import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
 export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
-  return async ({ listId, itemId, user }: Input): Promise<ItemEntity> => {
+  return async ({ listId, itemId, user }: Input): Promise<void> => {
     if (!user) {
       throw new CoreError('Forbidden');
     }
@@ -38,29 +36,13 @@ export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
 
     const updatedItem = produce(item, (draft) => {
       draft.done = !draft.done;
+      draft.doneAt = draft.done ? Date.now() : null;
     });
 
-    const newItems = item.done
-      ? [item, ...list.items]
-      : list.items.filter(({ id }) => id !== itemId);
-
-    const doneItems = list.doneItems ?? [];
-
-    const newDoneItems = item.done
-      ? doneItems.filter(({ id }) => id !== itemId)
-      : [item, ...doneItems];
-
-    const [result] = await Promise.all([
-      listRepository.updateItem({ listId, itemId }, omit(updatedItem, ['id'])),
-      listRepository.setItems(listId, newItems),
-      listRepository.setDoneItems(listId, newDoneItems),
-    ]);
-
-    if (!result) {
-      throw new CoreError('Something went wrong');
-    }
-
-    return result;
+    await listRepository.setItems({
+      listId,
+      items: [updatedItem, ...list.items.filter(({ id }) => id !== itemId)],
+    });
   };
 }
 

@@ -13,14 +13,7 @@ export interface ListRepository {
 
   getUserLists(options: { user: UserEntity }): Promise<ListEntity[]>;
 
-  addItemToList(listId: string, options: AddItem): Promise<ItemEntity | null>;
-
   getListById(id: string): Promise<ListEntity | null>;
-
-  updateItem(
-    options: { listId: string; itemId: string },
-    item: Omit<ItemEntity, 'id'>,
-  ): Promise<null | ItemEntity>;
 
   updateListName(options: {
     listId: string;
@@ -28,25 +21,16 @@ export interface ListRepository {
     creator: UserEntity;
   }): Promise<null | ListEntity>;
 
-  removeItem(options: { listId: string; itemId: string }): Promise<void>;
-
   removeList(listId: string, options: { creator: UserEntity }): Promise<void>;
 
-  addParticipant(options: {
+  setParticipants(options: {
     listId: string;
-    participant: ParticipantToAdd;
+    participants: JoinedParticipant[];
   }): Promise<void>;
-
-  removeDoneItems(listId: string): Promise<string[] | null>;
-
-  changeItemsOrder(options: {
-    listId: string;
-    itemIds: string[];
-  }): Promise<void>;
-
-  setItems(listId: string, items: ItemEntity[]): Promise<void>;
-  setDoneItems(listId: string, items: ItemEntity[]): Promise<void>;
+  setItems(options: { listId: string; items: ItemEntity[] }): Promise<void>;
 }
 
-type AddItem = Omit<ItemEntity, 'id'>;
-export type ParticipantToAdd = WithRequiredField<ParticipantEntity, 'joinedAt'>;
+export type JoinedParticipant = WithRequiredField<
+  ParticipantEntity,
+  'joinedAt'
+>;

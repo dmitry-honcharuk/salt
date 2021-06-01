@@ -1,7 +1,7 @@
 import { ItemEntity } from 'core/entities/Item';
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
-import { isCreatorOrParticipant } from '../entities/List';
+import { isCreatorOrParticipant, ListEntity } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
 export function addItemUsecaseFactory({ listRepository }: Deps) {
@@ -26,18 +26,24 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
       throw new CoreError('Forbidden');
     }
 
-    const item = await listRepository.addItemToList(listId, {
+    const item: ItemEntity = {
+      id: generateItemId(list),
       content: content ?? '',
       done,
       createdAt,
-    });
+    };
 
-    if (!item) {
-      throw new CoreError('Could not add item');
-    }
+    await listRepository.setItems({
+      listId,
+      items: [item, ...list.items],
+    });
 
     return item;
   };
+}
+
+function generateItemId(list: ListEntity): string {
+  return `${list.id}-${Date.now()}-${list.items.length + 1}`;
 }
 
 type Deps = {

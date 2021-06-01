@@ -1,5 +1,6 @@
 import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
+import produce from 'immer';
 import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
 
@@ -23,10 +24,16 @@ export function changeOrderUsecaseFactory({ listRepository }: Deps) {
       throw new CoreError('Forbidden');
     }
 
-    await listRepository.changeItemsOrder({
-      listId,
-      itemIds,
+    const items = produce(list.items, (draft) => {
+      draft.sort((a, b) => {
+        const aIndex = itemIds.findIndex((id) => id === a.id);
+        const bIndex = itemIds.findIndex((id) => id === b.id);
+
+        return aIndex - bIndex;
+      });
     });
+
+    await listRepository.setItems({ listId, items });
   };
 }
 
