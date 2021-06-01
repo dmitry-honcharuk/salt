@@ -28,6 +28,7 @@
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
+    "migrate-mongo": "^8.2.2",
     "mongodb": "^3.6.4",
     "next": "^10.0.8",
     "next-connect": "^0.10.0",

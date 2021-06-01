@@ -43,6 +43,9 @@ export interface ListRepository {
     listId: string;
     itemIds: string[];
   }): Promise<void>;
+
+  setItems(listId: string, items: ItemEntity[]): Promise<void>;
+  setDoneItems(listId: string, items: ItemEntity[]): Promise<void>;
 }
 
 type AddItem = Omit<ItemEntity, 'id'>;

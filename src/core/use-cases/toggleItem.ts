@@ -40,10 +40,21 @@ export function toggleItemUsecaseFactory({ listRepository }: Dependencies) {
       draft.done = !draft.done;
     });
 
-    const result = await listRepository.updateItem(
-      { listId, itemId },
-      omit(updatedItem, ['id']),
-    );
+    const newItems = item.done
+      ? [item, ...list.items]
+      : list.items.filter(({ id }) => id !== itemId);
+
+    const doneItems = list.doneItems ?? [];
+
+    const newDoneItems = item.done
+      ? doneItems.filter(({ id }) => id !== itemId)
+      : [item, ...doneItems];
+
+    const [result] = await Promise.all([
+      listRepository.updateItem({ listId, itemId }, omit(updatedItem, ['id'])),
+      listRepository.setItems(listId, newItems),
+      listRepository.setDoneItems(listId, newDoneItems),
+    ]);
 
     if (!result) {
       throw new CoreError('Something went wrong');

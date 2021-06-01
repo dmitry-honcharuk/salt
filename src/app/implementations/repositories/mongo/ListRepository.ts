@@ -20,6 +20,7 @@ export function buildMongoListRepository(): ListRepository {
         name,
         creator,
         items: [],
+        doneItems: [],
         createdAt,
       };
 
@@ -246,6 +247,10 @@ export function buildMongoListRepository(): ListRepository {
         },
       });
     },
+    // @TODO is this correct approach ?
+    // @TODO Remove migrate mongoß
+    setItems(listId: string, items: ItemEntity[]): Promise<void> {},
+    setDoneItems(listId: string, items: ItemEntity[]): Promise<void> {},
   };
 }
 

@@ -6,6 +6,7 @@ export interface ListEntity {
   id: string;
   name: string;
   items: ItemEntity[];
+  doneItems?: ItemEntity[];
   creator: UserEntity;
   createdAt: number;
   participants?: ParticipantEntity[];
