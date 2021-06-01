@@ -57,7 +57,8 @@ export const ListScreen: FunctionComponent<Props> = ({
   const { user: currentUser } = useAuth();
   const [pendingClean, setPendingClean] = useState(false);
 
-  const doneCount = items.filter(({ done }) => done).length;
+  const undoneItems = items.filter(({ done }) => !done);
+  const doneItems = items.filter(({ done }) => done);
 
   const handleClean = async () => {
     setPendingClean(true);
@@ -77,7 +78,7 @@ export const ListScreen: FunctionComponent<Props> = ({
   const removeDone = (
     <CleanButton
       onClick={handleClean}
-      disabled={pendingClean || doneCount === 0}
+      disabled={pendingClean || doneItems.length === 0}
     >
       <Icon as={CleaningServices} />
       <span>clean</span>
@@ -115,7 +116,7 @@ export const ListScreen: FunctionComponent<Props> = ({
         </Ul>
       )}
       <DraggableList
-        items={items.map((item) => ({
+        items={undoneItems.map((item) => ({
           ...item,
           key: item.id,
         }))}
@@ -130,10 +131,26 @@ export const ListScreen: FunctionComponent<Props> = ({
               onToggle={toggleItem(id)}
               onItemChange={updateContent(id)}
               onRemove={removeItem(id)}
+              draggable
             />
           </ListItem>
         )}
       />
+      {!!doneItems.length && (
+        <Ul>
+          {doneItems.map(({ id, content, done }) => (
+            <ListItem key={id} as='li'>
+              <Item
+                done={done}
+                content={content}
+                onRemove={noop}
+                onItemChange={noop}
+                onToggle={toggleItem(id)}
+              />
+            </ListItem>
+          ))}
+        </Ul>
+      )}
     </Layout>
   );
 };

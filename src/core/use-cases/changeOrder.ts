@@ -25,7 +25,6 @@ export function changeOrderUsecaseFactory({ listRepository }: Deps) {
 
     await listRepository.changeItemsOrder({
       listId,
-      userId: user.id,
       itemIds,
     });
   };

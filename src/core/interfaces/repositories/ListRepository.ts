@@ -41,10 +41,9 @@ export interface ListRepository {
 
   changeItemsOrder(options: {
     listId: string;
-    userId: string;
     itemIds: string[];
   }): Promise<void>;
 }
 
-type AddItem = Omit<ItemEntity, 'id'> & { userId: string };
+type AddItem = Omit<ItemEntity, 'id'>;
 export type ParticipantToAdd = WithRequiredField<ParticipantEntity, 'joinedAt'>;

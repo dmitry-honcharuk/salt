@@ -1,4 +1,3 @@
-import { useAuth } from '@ficdev/auth-react';
 import { ListScreen } from 'app/frontend/screens/ListScreen';
 import { addItem } from 'app/frontend/services/api/addItem';
 import { getListById } from 'app/frontend/services/api/getListById';
@@ -20,12 +19,8 @@ import {
 import { ItemEntity } from 'core/entities/Item';
 import { ListEntity } from 'core/entities/List';
 import produce from 'immer';
-import { Dictionary } from 'lodash';
 import debounce from 'lodash/debounce';
 import find from 'lodash/find';
-import _ from 'lodash/fp';
-import _omitBy from 'lodash/fp/omitBy';
-import keyBy from 'lodash/keyBy';
 import { useRouter } from 'next/router';
 import {
   FunctionComponent,
@@ -46,35 +41,41 @@ type Props = {
 
 const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
   const [list, setList] = useState(rawList);
-  const [itemDict, setItemDict] = useState<Dictionary<ItemEntity>>(
-    keyBy(
-      list.items.map((item) => ({ ...item, displayId: item.id })),
-      'displayId',
-    ),
-  );
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [name, setName] = useState<string>(list.name);
+  const pendingDelete = useRef<Set<string>>(new Set());
   const emit = useEmit();
+
+  const getItemById = useCallback(
+    (itemId: string) => find(list.items, { id: itemId }),
+    [list.items],
+  );
 
   const setItemById = useCallback(
     (id: string, item: ItemEntity) => {
-      setItemDict((dict) => ({ ...dict, [id]: item }));
-    },
-    [setItemDict],
-  );
+      const newList = produce(list, (draft) => {
+        const index = draft.items.findIndex((item) => item.id === id);
 
-  const deleteItemById = useCallback(
-    (id: string) => {
-      setItemDict((dict) => {
-        return produce(dict, (draft) => {
-          delete draft[id];
+        if (index === -1) {
+          draft.items.unshift(item);
+          return;
+        }
 
-          return draft;
-        });
+        draft.items[index] = item;
       });
+
+      setList(newList);
     },
-    [setItemDict],
+    [list],
   );
+
+  const deleteItemById = useCallback((id: string) => {
+    setList((list) =>
+      produce(list, (draft) => {
+        draft.items = draft.items.filter((item) => item.id !== id);
+      }),
+    );
+  }, []);
 
   useSubscribe<ItemAddedEvent>(
     TOPICS.ITEM_ADDED,
@@ -98,7 +99,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
           return;
         }
 
-        const item = find(itemDict, { id: itemId });
+        const item = getItemById(itemId);
 
         if (!item) {
           return;
@@ -106,7 +107,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
 
         setItemById(item.id, { ...item, done });
       },
-      [itemDict, list.id, setItemById],
+      [getItemById, list.id, setItemById],
     ),
   );
 
@@ -118,7 +119,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
           return;
         }
 
-        const item = find(itemDict, { id: itemId });
+        const item = getItemById(itemId);
 
         if (!item) {
           return;
@@ -126,7 +127,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
 
         setItemById(item.id, { ...item, content });
       },
-      [itemDict, list.id, setItemById],
+      [getItemById, list.id, setItemById],
     ),
   );
 
@@ -152,7 +153,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
           return;
         }
 
-        const item = find(itemDict, { id: itemId });
+        const item = getItemById(itemId);
 
         if (!item) {
           return;
@@ -160,7 +161,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
 
         deleteItemById(item.id);
       },
-      [deleteItemById, itemDict, list.id],
+      [deleteItemById, getItemById, list.id],
     ),
   );
 
@@ -201,14 +202,12 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
     }, 800),
   );
 
-  const { user: currentUser } = useAuth();
-
   if (!list) {
     return <LoadingScreen />;
   }
 
   const handleItemToggle = (itemId: string) => async () => {
-    const item = itemDict[itemId];
+    const item = getItemById(itemId);
 
     if (!item) {
       return;
@@ -232,27 +231,27 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
     }
   };
 
-  const handleContentUpdate =
-    (displayId: string) => async (newContent: string) => {
-      const item = itemDict[displayId];
-      const itemId = item.id;
+  const handleContentUpdate = (id: string) => async (newContent: string) => {
+    const item = getItemById(id);
 
-      if (!item || !itemId) {
-        return;
-      }
+    if (!item) {
+      return;
+    }
 
-      setItemById(displayId, { ...item, content: newContent });
+    setItemById(id, { ...item, content: newContent });
 
-      try {
-        await updateContent.current({
-          itemId,
-          listId: list.id,
-          content: newContent,
-        });
-      } catch (error) {
+    try {
+      await updateContent.current({
+        itemId: item.id,
+        listId: list.id,
+        content: newContent,
+      });
+    } catch (error) {
+      if (!pendingDelete.current.has(id)) {
         toast.error('Could not update');
       }
-    };
+    }
+  };
 
   const handleAddItem = async (
     params: Partial<Omit<ItemEntity, 'id'>> = {},
@@ -260,11 +259,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
     try {
       const { content = '', done = false } = params;
 
-      const tempId = [
-        list.id,
-        Date.now(),
-        Object.keys(itemDict).length + 1,
-      ].join('-');
+      const tempId = [list.id, Date.now(), list.items.length + 1].join('-');
 
       const pendingItem: PendingItem = {
         content,
@@ -280,20 +275,6 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
         items.filter((item) => item.tempId !== tempId),
       );
       setItemById(item.id, item);
-
-      const newList = produce(list as ListEntity, (draft) => {
-        if (!currentUser) {
-          return;
-        }
-
-        draft.order = draft.order ?? {};
-        draft.order[currentUser.id] = [
-          item.id,
-          ...(draft.order[currentUser.id] || []),
-        ];
-      });
-
-      setList(newList);
 
       emit<ItemAddedEvent>(TOPICS.ITEM_ADDED, {
         listId: list.id,
@@ -317,28 +298,31 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
     }
   };
 
-  const handleRemoveItem = (displayId: string) => async () => {
-    const item = itemDict[displayId];
-    const itemId = item.id;
+  const handleRemoveItem = (id: string) => async () => {
+    const item = getItemById(id);
 
-    if (!item || !itemId) {
+    if (!item) {
       return;
     }
 
-    deleteItemById(displayId);
+    pendingDelete.current.add(item.id);
+
+    deleteItemById(id);
 
     try {
       await removeItem({
         listId: list.id,
-        itemId,
+        itemId: item.id,
       });
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
         listId: list.id,
-        itemId,
+        itemId: item.id,
       });
     } catch (e) {
-      setItemById(displayId, { ...item });
+      setItemById(id, { ...item });
     }
+
+    pendingDelete.current.delete(item.id);
   };
 
   const handleClean = async () => {
@@ -348,7 +332,11 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
       return;
     }
 
-    setItemDict(_omitBy<ItemEntity>(({ id }) => id && removedIds.includes(id)));
+    setList((list) =>
+      produce(list, (draft) => {
+        draft.items = draft.items.filter(({ id }) => !removedIds.includes(id));
+      }),
+    );
 
     for (const removedId of removedIds) {
       emit<ItemRemovedEvent>(TOPICS.ITEM_REMOVED, {
@@ -358,38 +346,17 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
     }
   };
 
-  const itemsOrder =
-    (currentUser?.id ? list.order?.[currentUser.id] : []) ?? [];
-
-  const orderedItems = _.pipe<[string[]], (ItemEntity | null)[], ItemEntity[]>(
-    _.map((id) => itemDict[id]),
-    _.filter(_.negate(_.isNil)),
-  )(itemsOrder);
-
-  const unorderedItems = _.pipe<
-    [Dictionary<ItemEntity>],
-    ItemEntity[],
-    ItemEntity[],
-    ItemEntity[]
-  >(
-    _.values,
-    _.filter((item) => !itemsOrder.includes(item.id)),
-    _.orderBy<ItemEntity>(['done', 'id'])(['asc', 'desc']),
-  )(itemDict);
-
-  const items = [...orderedItems, ...unorderedItems];
-
   const updateOrder = async (order: string[]) => {
-    if (!currentUser?.id) {
-      return;
-    }
+    setList((list) =>
+      produce(list, (draft) => {
+        draft.items.sort((a, b) => {
+          const aIndex = order.findIndex((id) => id === a.id);
+          const bIndex = order.findIndex((id) => id === b.id);
 
-    const newList = produce(list as ListEntity, (draft) => {
-      draft.order = draft.order ?? {};
-      draft.order[currentUser.id] = order;
-    });
-
-    setList(newList);
+          return aIndex - bIndex;
+        });
+      }),
+    );
 
     await orderItems({
       listId: list.id,
@@ -403,7 +370,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: rawList }) => {
       name={name}
       createdAt={list.createdAt}
       setName={handleNameChange}
-      items={items}
+      items={list.items}
       pendingItems={pendingItems}
       toggleItem={handleItemToggle}
       updateContent={handleContentUpdate}
