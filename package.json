@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ficdev/auth-express": "^0.0.5",
-    "@ficdev/auth-react": "^0.0.4",
+    "@ficdev/auth-react": "^0.0.6",
     "@styled-icons/bootstrap": "^10.29.0",
     "@styled-icons/evaicons-outline": "^10.18.0",
     "@styled-icons/material": "^10.28.0",
