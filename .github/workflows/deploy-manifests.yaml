@@ -32,6 +32,6 @@ jobs:
       - run: doctl kubernetes cluster kubeconfig save ficdev
       - name: Create configmap
         run: |
-          kubectl delete configmap env-config
-          kubectl create configmap env-config --from-env-file=.env
+          kubectl delete configmap salt-env-config
+          kubectl create configmap salt-env-config --from-env-file=.env
       - run: kubectl apply -f deploy
