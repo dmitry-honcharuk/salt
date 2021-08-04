@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - yarn.lock
+      - next.config.js
+      - .github/**
+      - public/**
+      - src/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Prepare env
+        run: |
+          cat <<EOT >> .env
+
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          NEXT_PUBLIC_SOCKET_URL=https://messages.fictionaldev.com
+          NEXT_PUBLIC_AUTH_CLIENT_ID=9b0a29ac737d605e50a1ecae49e1a1e8753bf738709042901458efba3874e95c
+          SHARE_TOKEN_SECRET=${{ secrets.SHARE_TOKEN_SECRET }}
+          NEXT_PUBLIC_AUTH_BASE_URL=https://auth.fictionaldev.com
+          NEXT_PUBLIC_AUDIENCE=https://salt.fictionaldev.com
+
+          EOT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - run: docker build -t dmitryhoncharuk/salt .
+      - run: docker push dmitryhoncharuk/salt
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - run: doctl kubernetes cluster kubeconfig save ficdev
+      - name: Create configmap
+        run: |
+          kubectl delete configmap salt-env-config
+          kubectl create configmap salt-env-config --from-env-file=.env
+      - run: kubectl rollout restart deployment salt-deployment
