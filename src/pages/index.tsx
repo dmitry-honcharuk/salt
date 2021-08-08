@@ -7,6 +7,7 @@ import { LoadingScreen } from '../app/frontend/screens/LoadingScreen';
 const Home: FunctionComponent = () => {
   const { user, isFulfilled } = useAuth();
   const { push } = useRouter();
+  console.log('HOME');
 
   useEffect(() => {
     if (isFulfilled && user) {
