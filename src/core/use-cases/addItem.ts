@@ -28,7 +28,7 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
 
     const item: ItemEntity = {
       id: generateItemId(list),
-      content: content ?? '',
+      content: (content ?? '').trim(),
       done,
       createdAt,
     };
