@@ -12,7 +12,7 @@ export function useSubscribe<Ev extends Event = never>(
     socket.on(topic, callback as any);
 
     return () => {
-      socket.off(topic, callback);
+      socket.off(topic, callback as any);
     };
   }, [topic, callback, socket]);
 }

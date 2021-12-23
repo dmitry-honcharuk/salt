@@ -60,7 +60,7 @@ export const AddListScreen: FC = () => {
 
       const { listId } = await participateInList(input);
       await push(`/${listId}`);
-    } catch (e) {
+    } catch (e: any) {
       toast.error(e.message);
     }
   };
