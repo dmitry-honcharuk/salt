@@ -6,6 +6,7 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { io } from 'socket.io-client';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import 'react-image-gallery/styles/css/image-gallery.css';
 import {
   NEXT_PUBLIC_AUDIENCE,
   NEXT_PUBLIC_AUTH_BASE_URL,
@@ -44,6 +45,10 @@ const GlobalStyle = createGlobalStyle`
   body {
     font-family: 'Roboto', sans-serif;
     color: ${getColor('text')};
+  }
+  
+  .overflow-hidden {
+    overflow: hidden;
   }
 `;
 

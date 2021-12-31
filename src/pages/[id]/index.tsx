@@ -48,7 +48,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
   const getItemById = useCallback(
     (itemId: string) => find(items, { id: itemId }),
-    [items],
+    [items]
   );
 
   const setItemById = useCallback((id: string, item: ItemEntity) => {
@@ -62,7 +62,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
         }
 
         draft[index] = item;
-      }),
+      })
     );
   }, []);
 
@@ -80,8 +80,8 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
         setItemById(item.id, item);
       },
-      [initialList.id, setItemById],
-    ),
+      [initialList.id, setItemById]
+    )
   );
 
   useSubscribe<ItemToggledEvent>(
@@ -100,8 +100,8 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
         setItemById(item.id, { ...item, done });
       },
-      [getItemById, initialList.id, setItemById],
-    ),
+      [getItemById, initialList.id, setItemById]
+    )
   );
 
   useSubscribe<ItemContentChangedEvent>(
@@ -120,8 +120,8 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
         setItemById(item.id, { ...item, content });
       },
-      [getItemById, initialList.id, setItemById],
-    ),
+      [getItemById, initialList.id, setItemById]
+    )
   );
 
   useSubscribe<ListNameChangedEvent>(
@@ -134,8 +134,8 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
         setName(name);
       },
-      [initialList.id],
-    ),
+      [initialList.id]
+    )
   );
 
   useSubscribe<ItemRemovedEvent>(
@@ -154,8 +154,8 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
         deleteItemById(item.id);
       },
-      [deleteItemById, getItemById, initialList.id],
-    ),
+      [deleteItemById, getItemById, initialList.id]
+    )
   );
 
   type UpdateName = (options: {
@@ -172,7 +172,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
         listId,
         name,
       });
-    }, 800),
+    }, 800)
   );
 
   type UpdateItem = (options: {
@@ -192,7 +192,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
         listId,
         content,
       });
-    }, 800),
+    }, 800)
   );
 
   if (!initialList) {
@@ -254,7 +254,8 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
   };
 
   const handleAddItem = async (
-    params: Partial<Omit<ItemEntity, 'id'>> = {},
+    params: Partial<Omit<ItemEntity, 'id'>>,
+    files: File[] = []
   ) => {
     try {
       const { content = '', done = false } = params;
@@ -269,10 +270,15 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
 
       setPendingItems((items) => [pendingItem, ...items]);
 
-      const item = await addItem({ listId: initialList.id, content, done });
+      const item = await addItem({
+        listId: initialList.id,
+        content,
+        done,
+        files,
+      });
 
       setPendingItems((items) =>
-        items.filter((item) => item.tempId !== tempId),
+        items.filter((item) => item.tempId !== tempId)
       );
       setItemById(item.id, item);
 
@@ -349,7 +355,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
         const bIndex = order.findIndex((id) => id === b.id);
 
         return aIndex - bIndex;
-      }),
+      })
     );
 
     await orderItems({

@@ -5,7 +5,12 @@ import { useRouter } from 'next/router';
 import { FC, ReactNode } from 'react';
 import PopupBase from 'reactjs-popup';
 import styled from 'styled-components';
-import { getColor, getLighterColor, getSpacePx } from '../theme-selectors';
+import {
+  getColor,
+  getLighterColor,
+  getRadius,
+  getSpacePx,
+} from '../theme-selectors';
 import { BaseButton } from './BaseButton';
 import { ButtonBase } from './ButtonBase';
 
@@ -25,11 +30,11 @@ export const Actions: FC<Props> = ({ items = [] }) => {
   return (
     <Popup
       trigger={
-        <OptionsButton color='text'>
+        <OptionsButton color="text">
           <OptionsIcon />
         </OptionsButton>
       }
-      position='left top'
+      position="left top"
       offsetX={-45}
       closeOnDocumentClick
       mouseEnterDelay={0}
@@ -60,6 +65,7 @@ const Popup = styled(PopupBase)`
 
 const OptionsButton = styled(BaseButton)`
   padding: ${getSpacePx()};
+  border-radius: ${getRadius()};
 `;
 
 const OptionsIcon = styled(MoreIcon)`

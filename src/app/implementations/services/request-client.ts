@@ -1,13 +1,15 @@
-export async function post<R = any, B extends Record<string, unknown> = any>(
-  url: string,
-  body: B,
-): Promise<R> {
+export async function post<
+  R = any,
+  B extends Record<string, unknown> | FormData = any
+>(url: string, body: B): Promise<R> {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      ...(!(body instanceof FormData) && {
+        'Content-Type': 'application/json',
+      }),
     },
-    body: JSON.stringify(body),
+    body: body instanceof FormData ? body : JSON.stringify(body),
   });
 
   const data = await response.json();
@@ -24,7 +26,7 @@ export async function post<R = any, B extends Record<string, unknown> = any>(
 
 export async function put<R = any, B extends Record<string, unknown> = any>(
   url: string,
-  body: B,
+  body: B
 ): Promise<R> {
   const response = await fetch(url, {
     method: 'PUT',
@@ -48,7 +50,7 @@ export async function put<R = any, B extends Record<string, unknown> = any>(
 
 export async function get<T = any>(
   url: string,
-  options?: Partial<Request>,
+  options?: Partial<Request>
 ): Promise<T> {
   const response = await fetch(url, options);
 
@@ -66,7 +68,7 @@ export async function get<T = any>(
 
 export async function patch<R = any, B extends Record<string, unknown> = any>(
   url: string,
-  body: B,
+  body: B
 ): Promise<R> {
   const response = await fetch(url, {
     method: 'PATCH',

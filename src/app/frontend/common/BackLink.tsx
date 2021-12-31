@@ -2,7 +2,7 @@ import { Arrow90degLeft } from '@styled-icons/bootstrap/Arrow90degLeft';
 import Link from 'next/link';
 import { FC } from 'react';
 import styled from 'styled-components';
-import { getLighterColor, getSpaceSet } from '../theme-selectors';
+import { getLighterColor, getRadius, getSpaceSet } from '../theme-selectors';
 
 type Props = {
   href?: string;
@@ -27,4 +27,5 @@ const StyledBackLink = styled.a`
   height: ${getSpaceSet(9)};
   width: ${getSpaceSet(9)};
   cursor: pointer;
+  border-radius: ${getRadius()};
 `;

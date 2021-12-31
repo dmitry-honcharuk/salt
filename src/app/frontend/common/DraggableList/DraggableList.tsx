@@ -13,12 +13,14 @@ const reorder = (list: any[], startIndex: number, endIndex: number) => {
 };
 
 interface Props<Item extends { key: string }> {
+  className?: string;
   items: Item[];
   renderItem: (item: Item) => React.ReactNode;
   onDragEnd: (items: Item[]) => void;
 }
 
 export function DraggableList<T extends { key: string }>({
+  className,
   items,
   renderItem,
   onDragEnd: handleDragEnd,
@@ -45,7 +47,7 @@ export function DraggableList<T extends { key: string }>({
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId='list'>
         {(provided) => (
-          <ul ref={provided.innerRef} {...provided.droppableProps}>
+          <ul ref={provided.innerRef} {...provided.droppableProps} className={className}>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
             <List items={items} renderItem={renderItem} />

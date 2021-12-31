@@ -6,7 +6,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
 import { AuthenticateScreen } from '../screens/AuthenticateScreen';
 
-export const Layout: FunctionComponent = ({ children }) => {
+type Props = { className?: string };
+
+export const Layout: FunctionComponent<Props> = ({ children, className }) => {
   const { user, isFulfilled } = useAuth();
 
   if (!user && isFulfilled) {
@@ -15,9 +17,9 @@ export const Layout: FunctionComponent = ({ children }) => {
 
   return (
     <>
-      <Root>{children}</Root>
+      <Root className={className}>{children}</Root>
       <ToastContainer
-        position='top-center'
+        position="top-center"
         autoClose={5000}
         hideProgressBar
         closeOnClick
