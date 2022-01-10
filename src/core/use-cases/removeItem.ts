@@ -2,8 +2,12 @@ import { CoreError } from 'core/errors/CoreError';
 import { ListRepository } from 'core/interfaces/repositories/ListRepository';
 import { isCreatorOrParticipant } from '../entities/List';
 import { UserEntity } from '../entities/User';
+import { FileStorage } from '../interfaces/services/file-storage.interface';
 
-export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
+export function removeItemUsecaseFactory({
+  listRepository,
+  fileStorage,
+}: Dependencies) {
   return async ({ listId, itemId, user }: Input): Promise<void> => {
     if (!user) {
       throw new CoreError('Forbidden');
@@ -37,11 +41,24 @@ export function removeItemUsecaseFactory({ listRepository }: Dependencies) {
       listId,
       items: list.items.filter((item) => item.id !== itemId),
     });
+
+    if (!item.images) {
+      return;
+    }
+
+    await fileStorage.deleteObjects(
+      item.images.map((url) => {
+        const urlParts = url.split('/');
+
+        return urlParts[urlParts.length - 1];
+      })
+    );
   };
 }
 
 type Dependencies = {
   listRepository: ListRepository;
+  fileStorage: FileStorage;
 };
 type Input = {
   listId?: string;

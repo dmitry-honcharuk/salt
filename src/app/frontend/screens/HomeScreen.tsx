@@ -5,6 +5,7 @@ import { H1, H4 } from 'app/frontend/common/Typography';
 import {
   getColor,
   getLighterColor,
+  getRadius,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
 import { getDisplayTime } from 'app/utils/getDisplayTime';
@@ -27,8 +28,8 @@ export const HomeScreen: FunctionComponent<Props> = ({ lists }) => {
         <H1 as={H4}>All Lists</H1>
         <Actions
           items={[
-            <Link href='/new'>
-              <AddListButton href='/new' as={LinkBase}>
+            <Link href="/new">
+              <AddListButton href="/new" as={LinkBase}>
                 <AddListIcon as={PlaylistAdd} />
                 <span>add list</span>
               </AddListButton>
@@ -63,8 +64,8 @@ const Ul = styled.ul`
 
 const ListItem = styled.li`
   border: 1px dashed ${getColor('listItemBorder')};
-
   margin: ${getSpaceSet(5, 0)};
+  border-radius: ${getRadius()};
 `;
 
 const ListLink = styled.a<{ pale?: boolean }>`

@@ -9,6 +9,7 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
     listId,
     content,
     done = false,
+    images = [],
     createdAt = Date.now(),
     user,
   }: Input): Promise<ItemEntity> => {
@@ -30,6 +31,7 @@ export function addItemUsecaseFactory({ listRepository }: Deps) {
       id: generateItemId(list),
       content: (content ?? '').trim(),
       done,
+      images,
       createdAt,
     };
 
@@ -52,6 +54,7 @@ type Deps = {
 type Input = {
   listId?: string;
   content?: string;
+  images?: string[];
   done?: boolean;
   createdAt?: number;
   user?: UserEntity | null;

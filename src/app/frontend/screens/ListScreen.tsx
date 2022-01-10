@@ -1,10 +1,11 @@
 import { useAuth } from '@ficdev/auth-react';
 import { CleaningServices } from '@styled-icons/material/CleaningServices';
 import { Tune } from '@styled-icons/material/Tune';
-import { Layout } from 'app/frontend/common/Layout';
+import { Layout as LayoutBase } from 'app/frontend/common/Layout';
 import {
   getColor,
   getLighterColor,
+  getRadius,
   getSpacePx,
   getSpaceSet,
 } from 'app/frontend/theme-selectors';
@@ -21,7 +22,7 @@ import { Header } from '../common/Header';
 import { LinkBase } from '../common/LinkBase';
 import { PendingItem } from '../types/PendingItem';
 import { Item } from './Item';
-import { NewItemRow } from './NewItemRow';
+import { NewItemRow as NewItemRowBase } from './NewItemRow';
 
 type Props = {
   listId: string;
@@ -30,7 +31,10 @@ type Props = {
   toggleItem: (id: string) => () => Promise<void>;
   updateContent: (id: string) => (content: string) => void;
   removeItem: (id: string) => () => void;
-  addItem: (params?: Partial<Omit<ItemEntity, 'id'>>) => Promise<void>;
+  addItem: (
+    params: Partial<Omit<ItemEntity, 'id'>>,
+    files?: File[]
+  ) => Promise<void>;
   name?: string;
   setName: (name: string) => void;
   clean: () => Promise<void>;
@@ -125,11 +129,12 @@ export const ListScreen: FunctionComponent<Props> = ({
         onDragEnd={(items) => {
           handleOrderChange(items.map((item) => item.id));
         }}
-        renderItem={({ id, content, done }) => (
+        renderItem={({ id, content, done, images }) => (
           <ListItem key={id}>
             <Item
               content={content}
               done={done}
+              images={images}
               onToggle={toggleItem(id)}
               onItemChange={updateContent(id)}
               onRemove={removeItem(id)}
@@ -140,11 +145,12 @@ export const ListScreen: FunctionComponent<Props> = ({
       />
       {!!doneItems.length && (
         <Ul>
-          {doneItems.map(({ id, content, done }) => (
-            <ListItem key={id} as="li">
+          {doneItems.map(({ id, content, done, images }) => (
+            <ListItem key={id} as="li" done>
               <Item
                 done={done}
                 content={content}
+                images={images}
                 onRemove={noop}
                 onItemChange={noop}
                 onToggle={toggleItem(id)}
@@ -161,10 +167,28 @@ const Ul = styled.ul`
   font-size: 20px;
 `;
 
-const ListItem = styled.div`
-  :last-child {
-    border-bottom: 1px dashed ${getColor('listItemBorder')};
+const Layout = styled(LayoutBase)`
+  ul {
+    margin-bottom: 20px;
+
+    li {
+      margin-bottom: 10px;
+    }
   }
+`;
+
+const NewItemRow = styled(NewItemRowBase)`
+  margin-bottom: 20px;
+`;
+
+const ListItem = styled.div<{ done?: boolean }>`
+  border: 1px dashed
+    ${({ theme, done }) =>
+      done
+        ? getLighterColor('text', 1.5)({ theme })
+        : getColor('main')({ theme })};
+  border-radius: ${getRadius()};
+  background-color: rgb(255 255 255 / 95%);
 `;
 
 const NameWrapper = styled.div`

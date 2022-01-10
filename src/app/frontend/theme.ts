@@ -12,6 +12,7 @@ export const theme = {
     grey: '#616161',
   },
   spacing: { unit: 5 },
+  radius: '5px',
 } as const;
 
 export type Theme = typeof theme;
