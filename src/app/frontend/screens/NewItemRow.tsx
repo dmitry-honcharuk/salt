@@ -62,8 +62,35 @@ export const NewItemRow: FunctionComponent<Props> = ({
     const imageUrls: Record<string, string> = {};
 
     for (const file of target.files) {
+      const canvas = document.createElement('canvas');
+      const img = new Image();
       filesRef.current.set(file.name, file);
-      imageUrls[file.name] = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
+      imageUrls[file.name] = url;
+      img.src = url;
+
+      img.addEventListener('load', () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+
+        ctx?.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            console.log('Failed to convert file to png');
+            return;
+          }
+
+          filesRef.current.set(
+            file.name,
+            new File([blob], file.name, {
+              lastModified: file.lastModified,
+              type: 'image/jpg',
+            })
+          );
+        }, 'image/jpg');
+      });
     }
 
     setImages((images) => ({
@@ -116,12 +143,7 @@ export const NewItemRow: FunctionComponent<Props> = ({
         <Actions>
           <FileLabel>
             <PhotoIcon />
-            <FileInput
-              type="file"
-              accept="image/x-png,image/jpeg,image/gif"
-              onChange={handleFiles}
-              multiple
-            />
+            <FileInput type="file" onChange={handleFiles} multiple />
           </FileLabel>
           <SendButton onClick={create}>
             <SendIcon />

@@ -1,4 +1,4 @@
-import { authorized, listRepository } from 'app/dependencies';
+import { authorized, listRepository, s3FileStorage } from 'app/dependencies';
 import { createRoute } from 'app/utils/api/route';
 import { normalizeQueryParam } from 'app/utils/normalizeQueryParam';
 import { removeListUsecaseFactory } from 'core/use-cases/removeList';
@@ -53,7 +53,10 @@ async function removeList(req: NextApiRequest, res: NextApiResponse) {
 
   const listId = normalizeQueryParam(listIdQuery);
 
-  await removeListUsecaseFactory({ listRepository })({ listId, creator: user });
+  await removeListUsecaseFactory({
+    listRepository,
+    fileStorage: s3FileStorage,
+  })({ listId, creator: user });
 
   return res.json({});
 }

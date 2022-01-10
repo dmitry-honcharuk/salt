@@ -1,4 +1,0 @@
-Todo:
-  ☐ Implement adequate error exchange with auth service (error codes?)
-  ☐ Refactor item toggle (bug with fast items toggling)
-  ☐ Implement admin area

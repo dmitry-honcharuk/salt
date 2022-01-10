@@ -1,1 +1,3 @@
-export type UploadedFile = Express.MulterS3.File;
+import formidable from 'formidable';
+
+export type UploadedFile = formidable.File & { location?: string };
