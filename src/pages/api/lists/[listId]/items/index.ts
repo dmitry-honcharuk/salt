@@ -37,6 +37,8 @@ async function createItem(req: NextApiRequest, res: NextApiResponse) {
 
   const files = <UploadedFile[]>req.files;
 
+  console.log('FILES', files);
+
   const listId = normalizeQueryParam(listIdQuery);
 
   const addItem = addItemUsecaseFactory({ listRepository });
