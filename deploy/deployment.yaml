@@ -17,7 +17,7 @@ spec:
           image: dmitryhoncharuk/salt
           envFrom:
             - configMapRef:
-                name: env-config
+                name: salt-env-config
 ---
 apiVersion: v1
 kind: Service

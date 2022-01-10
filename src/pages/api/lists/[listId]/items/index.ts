@@ -1,31 +1,113 @@
 import { authorized, listRepository } from 'app/dependencies';
 import { createRoute } from 'app/utils/api/route';
-import { randomBytes } from 'crypto';
-import multer from 'multer';
-import multerS3 from 'multer-s3';
+import { NextFunction } from 'express';
+import formidable, { File } from 'formidable';
 import { NextApiRequest, NextApiResponse, PageConfig } from 'next';
+import { PassThrough, Writable } from 'stream';
 import { s3 } from '../../../../../app/implementations/services/s3';
 import { UploadedFile } from '../../../../../app/types/uploadedFile';
 import { normalizeQueryParam } from '../../../../../app/utils/normalizeQueryParam';
 import { addItemUsecaseFactory } from '../../../../../core/use-cases/addItem';
 
-const upload = multer({
-  storage: multerS3({
-    s3,
-    acl: 'public-read',
-    bucket: 'prod',
-    key: function (req, file, cb) {
-      const nameParts = file.originalname.split('.');
-      const extension = nameParts[nameParts.length - 1];
+function* makeRangeIterator<T>(total: number): Generator<T[], T[], T> {
+  const results: T[] = [];
 
-      cb(null, `${randomBytes(16).toString('hex')}.${extension}`);
-    },
-  }),
-});
+  for (let i = 0; i < total; i += 1) {
+    results.push(yield results);
+  }
+
+  return results;
+}
+
+const upload =
+  (fileFields: string[]) =>
+  (req: NextApiRequest, res: NextApiResponse, next: NextFunction) => {
+    let it: Generator<string[], string[], string>;
+
+    const uploadStream = (file: File): Writable => {
+      const pass = new PassThrough();
+      const nameParts = file.originalFilename?.split('.') ?? [];
+
+      s3.upload(
+        {
+          ACL: 'public-read',
+          Bucket: 'prod',
+          Key: [file.newFilename, nameParts[nameParts.length - 1]]
+            .filter(Boolean)
+            .join('.'),
+          Body: pass,
+        },
+        (err, data) => {
+          const files = req.files ? Object.values(req.files).flat() : [];
+
+          files
+            .filter(({ filepath }) => filepath === file.filepath)
+            .forEach((parsedFile) => {
+              parsedFile.location = data.Location;
+            });
+
+          const optionalParams = it.next(data.Location);
+
+          if (optionalParams.done) {
+            pass.end();
+
+            next();
+          }
+
+          if (err) {
+            console.log('FILE UPLOAD ERROR');
+            console.log(err);
+          }
+        }
+      );
+
+      return pass;
+    };
+
+    const form = formidable({
+      multiples: true,
+      fileWriteStreamHandler: <any>uploadStream,
+    });
+
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        console.log('PARSE ERROR');
+        console.log(err);
+        next(err);
+        return;
+      }
+
+      const filesCount = Object.values(files).flat().length;
+
+      req.body = fields;
+      req.files =
+        filesCount > 0
+          ? fileFields.reduce<Record<string, UploadedFile[]>>(
+              (result, field) => {
+                const fieldFiles = files[field];
+
+                return {
+                  [field]: Array.isArray(fieldFiles)
+                    ? fieldFiles
+                    : [fieldFiles],
+                };
+              },
+              {}
+            )
+          : {};
+
+      if (filesCount > 0) {
+        it = makeRangeIterator<string>(filesCount);
+        it.next();
+      } else {
+        next();
+      }
+    });
+  };
 
 export default createRoute()
   .use(authorized())
-  .use(upload.array('files'))
+  .use(upload(['files']))
   .post(createItem);
 
 async function createItem(req: NextApiRequest, res: NextApiResponse) {
@@ -35,7 +117,7 @@ async function createItem(req: NextApiRequest, res: NextApiResponse) {
     user,
   } = req;
 
-  const files = <UploadedFile[]>req.files;
+  const { files = [] } = req.files!;
 
   const listId = normalizeQueryParam(listIdQuery);
 
@@ -46,7 +128,7 @@ async function createItem(req: NextApiRequest, res: NextApiResponse) {
     listId,
     content: Array.isArray(content) ? content[0] : content,
     done: done === 'true',
-    images: files.map(({ location }) => location),
+    images: <string[]>files.map(({ location }) => location).filter(Boolean),
   });
 
   res.json(item);

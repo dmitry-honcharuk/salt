@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/images
     paths:
       - package.json
       - yarn.lock
@@ -12,12 +13,15 @@ on:
       - public/**
       - src/**
 
+concurrency:
+  group: salt
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Prepare env
         run: |
           cat <<EOT >> .env
@@ -35,17 +39,40 @@ jobs:
           S3_SECRET_ACCESS_KEY=${{ secrets.S3_SECRET_ACCESS_KEY }}
 
           EOT
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Cache .next
+        uses: actions/cache@v2
+        with:
+          path: ./.next
+          key: ${{ runner.os }}-next-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-next-
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
-          path: /tmp/.buildx-cache
+          path: /tmp/.buildx-production-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - run: docker build -t dmitryhoncharuk/salt .
-      - run: docker push dmitryhoncharuk/salt
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: dmitryhoncharuk/salt
+          cache-from: type=local,src=/tmp/.buildx-production-cache
+          cache-to: type=local,dest=/tmp/.buildx-production-cache-new,mode=max
+      - # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+        name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-production-cache
+          mv /tmp/.buildx-production-cache-new /tmp/.buildx-production-cache
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}

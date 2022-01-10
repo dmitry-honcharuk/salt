@@ -287,6 +287,7 @@ const ListPageView: FunctionComponent<Props> = ({ list: initialList }) => {
         item: item,
       });
     } catch (error) {
+      const { message, stack } = error as Error;
       toast.error('Could not create');
     }
   };
