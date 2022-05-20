@@ -76,7 +76,7 @@ jobs:
           kubectl -n=salt delete configmap salt-env-config || true
           kubectl -n=salt create configmap salt-env-config --from-env-file=.env
 
-      - run: kubectl rollout restart deployment salt-deployment
+      - run: kubectl -n=salt rollout restart deployment salt-deployment
 
       - name: 🚚 Move cache
         run: |
