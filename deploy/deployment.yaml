@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: salt-deployment
+  namespace: salt
 spec:
   replicas: 1
   selector:
@@ -17,12 +18,13 @@ spec:
           image: dmitryhoncharuk/salt
           envFrom:
             - configMapRef:
-                name: env-config
+                name: salt-env-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: salt-cluster-ip-service
+  namespace: salt
 spec:
   type: ClusterIP
   selector:
