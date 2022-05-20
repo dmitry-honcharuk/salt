@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires,no-undef*/
 
 require('dotenv').config();
+
 const Joi = require('joi');
 
 const { error } = Joi.object({
