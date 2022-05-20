@@ -13,8 +13,6 @@ COPY . .
 
 RUN yarn build
 
-RUN rm .env
-
 # Production image, copy all the files and run next
 FROM deps AS runner
 
